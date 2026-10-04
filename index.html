@@ -16164,7 +16164,10 @@ async function tPrint(){
   await sendToPrinter();
 }
 // thermal pages exactly as the printer gets them (used by Print and by Preview)
-const paperLenOf = c => c.paperLen == null ? 200 : (+c.paperLen || 0);
+// "auto" (default): no page size is forced, so the page is exactly the paper chosen in the print window.
+// Nothing gets centred, the design starts at the very top, and the printer skips the unused end.
+const paperAuto = c => c.paperLen == null || c.paperLen === "auto";
+const paperLenOf = c => paperAuto(c) ? 0 : (+c.paperLen || 0);
 async function buildThermal(c, qty){
   const {host, mm} = await tMeasure(c, v => v + "mm", 96 / 25.4); host.remove();
   const pw = paperW(c), content = r2(mm + 1);
@@ -16173,8 +16176,8 @@ async function buildThermal(c, qty){
   // "spread" fills that length with the design itself (no empty paper), "blank" adds empty paper, "exact" uses no minimum.
   // PL = the paper size picked in the print window. A page shorter than that paper gets centred by the computer
   // (empty paper on top), so the page is made as long as the paper; the printer skips the blank end.
-  const PL = paperLenOf(c);
-  const short = PL ? "blank" : (c.shortMode || "spread"), floor = short === "exact" ? 0 : pw + 1;
+  const PL = paperLenOf(c), AUTO = paperAuto(c);
+  const short = AUTO ? "exact" : PL ? "blank" : (c.shortMode || "spread"), floor = short === "exact" ? 0 : pw + 1;
   const slip = r2(Math.max(want, c.minLen || 0, floor));
   const s = (c.scale || 100) / 100;
   const spreadTo = short === "spread" && c.lenMode !== "fixed" && slip > want ? r2((slip - (c.mt || 0) * 2 - (c.feed || 0) - 1) / s) : 0;
@@ -16187,7 +16190,13 @@ async function buildThermal(c, qty){
   const top0 = (c.mt || 0) + cdy(c);
   const cell = top => `<div class="pcell" style="left:${r2(c.ml + cdx(c))}mm;top:${r2(top + top0)}mm;width:${c.w}mm;overflow:visible">${inner}</div>`;
   let h = "", pageCSS, pageLen, pages;
-  if (c.cut === "end"){
+  if (AUTO){ // page = the print window's paper; each slip is its own page, cut after it
+    pageCSS = `@page{margin:0}`; const n = c.cut === "end" ? 1 : qty; pages = n; pageLen = r2(c.cut === "end" ? slip * qty : slip);
+    for (let p = 0; p < n; p++){ h += `<div class="pg" style="width:${pw}mm;height:${pageLen}mm">`;
+      if (c.cut === "end"){ for (let i = 0; i < qty; i++){ h += cell(i * slip); if (i < qty - 1) h += `<div style="position:absolute;left:2mm;right:2mm;top:${r2((i + 1) * slip - (c.feed || 2) / 2)}mm;border-top:.3mm dashed #000"></div>`; } }
+      else h += cell(0);
+      h += `</div>`; }
+  } else if (c.cut === "end"){
     pageLen = r2(Math.max(slip * qty, PL)); pages = 1;
     pageCSS = `@page{size:${pw}mm ${pageLen}mm;margin:0}`;
     h = `<div class="pg" style="width:${pw}mm;height:${pageLen}mm">`;
@@ -16199,7 +16208,7 @@ async function buildThermal(c, qty){
     for (let i = 0; i < qty; i++) h += `<div class="pg" style="width:${pw}mm;height:${pageLen}mm">${cell(0)}</div>`;
   }
   const inkEnd = r2((c.cut === "end" ? (qty - 1) * slip : 0) + top0 + used);
-  return {html:h, pageCSS, pw, pageLen, pages, inkEnd, PL, want:r2(want)};
+  return {html:h, pageCSS, pw, pageLen, pages, inkEnd, PL, want:r2(want), auto:AUTO};
 }
 
 /* print preview (thermal) */
@@ -16223,9 +16232,9 @@ async function renderPreview(){
   const sel = (key, opts, v) => `<select data-c="${key}" class="fin" style="width:100%">${opts.map(([val, t]) => `<option value="${val}" ${String(v) === String(val) ? "selected" : ""}>${t}</option>`).join("")}</select>`;
   const n = (key, label, v, step = 0.5) => `<label class="f"><span>${label}</span><input type="number" data-c="${key}" step="${step}" value="${v}"></label>`;
   $("#pvSet").innerHTML = `<p class="pvsum"><b>${B.pages} ${B.pages === 1 ? "page" : "pages"}</b> of ${B.pw} × ${Math.round(B.pageLen)} mm · design ${Math.round(B.inkEnd)} mm long</p>
-    <label class="f full"><span>Paper size in the print window</span>${sel("paperLen", [["0", "Not sure / same as the slip"], ["200", "80 × 200 mm"], ["210", "80 × 210 mm"], ["297", "80 × 297 mm"], ["3276", "80 × 3276 mm (roll)"]], String(paperLenOf(c)))}</label>
-    <p class="hint">Pick the same paper size the print window shows. Then the design starts at the top of the slip with no empty space above it.</p>
-    ${paperLenOf(c) ? "" : `<label class="f full"><span>Short slips</span>${sel("shortMode", [["spread", "Spread the design to fill"], ["blank", "Add empty paper at the end"], ["exact", "Exact length (may print sideways)"]], c.shortMode || "spread")}</label>`}
+    <label class="f full"><span>Paper size in the print window</span>${sel("paperLen", [["auto", "Same as the print window (no empty space on top)"], ["0", "Same as the slip"], ["200", "80 × 200 mm"], ["210", "80 × 210 mm"], ["297", "80 × 297 mm"], ["3276", "80 × 3276 mm (roll)"]], paperAuto(c) ? "auto" : String(paperLenOf(c)))}</label>
+    <p class="hint">“Same as the print window” works with any paper size: the design always starts at the very top of the slip.</p>
+    ${paperLenOf(c) || paperAuto(c) ? "" : `<label class="f full"><span>Short slips</span>${sel("shortMode", [["spread", "Spread the design to fill"], ["blank", "Add empty paper at the end"], ["exact", "Exact length (may print sideways)"]], c.shortMode || "spread")}</label>`}
     <div class="field">${n("mt", "Top margin (mm)", c.mt || 0)}${n("feed", "Feed before cut (mm)", c.feed || 0, 1)}</div>
     <label class="f full"><span>Darkness <b>${c.dark || 150}</b></span><input type="range" data-c="dark" min="90" max="230" step="5" value="${c.dark || 150}"></label>
     <label class="f full"><span>Auto cut</span>${sel("cut", [["each", "Cut after each copy"], ["end", "One cut after all copies"]], c.cut || "each")}</label>
@@ -16707,8 +16716,8 @@ async function testPrint(){
   if (k === "label"){ const st = stockOf(c), pw = r2(c.ml * 2 + c.cols * st.w + (c.cols - 1) * c.gap), ph = r2(st.h + c.mt * 2);
     $("#pageStyle").textContent = `@page{size:${pw}mm ${ph}mm;margin:0}`;
     h = `<div class="pg" style="width:${pw}mm;height:${ph}mm">` + Array.from({length:c.cols}, (_, i) => `<div class="pcell" style="left:${r2(c.ml + cdx(c) + i * (st.w + c.gap))}mm;top:${r2(c.mt + cdy(c))}mm;width:${st.w}mm;height:${st.h}mm">${box(st.w, st.h, `${st.w} × ${st.h} mm`)}</div>`).join("") + `</div>`; }
-  else if (k === "thermal"){ const pw = paperW(c), ph = Math.max(60, pw + 1, paperLenOf(c));
-    $("#pageStyle").textContent = `@page{size:${pw}mm ${ph}mm;margin:0}`;
+  else if (k === "thermal"){ const pw = paperW(c), ph = paperAuto(c) ? 60 : Math.max(60, pw + 1, paperLenOf(c));
+    $("#pageStyle").textContent = paperAuto(c) ? `@page{margin:0}` : `@page{size:${pw}mm ${ph}mm;margin:0}`;
     h = `<div class="pg" style="width:${pw}mm;height:${ph}mm"><div class="pcell" style="left:${r2(c.ml + cdx(c))}mm;top:${r2((c.mt || 0) + cdy(c))}mm;width:${c.w}mm;height:40mm">${box(c.w, 40, `Print width ${c.w} mm`)}</div></div>`; }
   else { $("#pageStyle").textContent = `@page{size:A4 ${c.pageW > c.pageH ? "landscape" : "portrait"};margin:${c.mt}mm ${c.ml}mm}`;
     h = `<div class="a4copy" style="position:relative;width:${c.w}mm;height:${c.pageH - 2 * c.mt - 1}mm">${box(c.w, c.pageH - 2 * c.mt, "A4 margins test")}</div>`; }
@@ -16728,7 +16737,7 @@ function printerSettingsHTML(c, inSettings){
   if (k === "thermal"){
     h += n("pw", "Paper width (mm)", paperW(c), 1) + n("w", "Print width (mm)", c.w, 0.5) + n("mt", "Top margin (mm)", c.mt || 0) + n("feed", "Feed before cut (mm)", c.feed || 0, 1) +
       `<label class="f"><span>Slip length</span>${sel("lenMode", [["fit", "Fit the content"], ["fixed", "Fixed length"]], c.lenMode || "fit")}</label>` + n("fixedLen", "Fixed length (mm)", c.fixedLen || 150, 1) +
-      `<label class="f full"><span>Paper size chosen in the print window</span>${sel("paperLen", [["0", "Not sure / same as the slip"], ["200", "80 × 200 mm"], ["210", "80 × 210 mm"], ["297", "80 × 297 mm"], ["3276", "80 × 3276 mm (roll)"]], String(paperLenOf(c)))}</label>` +
+      `<label class="f full"><span>Paper size chosen in the print window</span>${sel("paperLen", [["auto", "Same as the print window (no empty space on top)"], ["0", "Same as the slip"], ["200", "80 × 200 mm"], ["210", "80 × 210 mm"], ["297", "80 × 297 mm"], ["3276", "80 × 3276 mm (roll)"]], paperAuto(c) ? "auto" : String(paperLenOf(c)))}</label>` +
       `<p class="hint full">Empty paper on top of the slip? Pick here the same paper size your print window shows. The design then starts right at the top.</p>` +
       `<label class="f full"><span>Short slips</span>${sel("shortMode", [["spread", "Spread the design to fill (no empty paper)"], ["blank", "Add empty paper at the end"], ["exact", "Exact length (may print sideways)"]], c.shortMode || "spread")}</label>` +
       `<label class="f full"><span>Auto cut</span>${sel("cut", [["each", "Cut after each copy"], ["end", "One cut after all copies"]], c.cut || "each")}</label>`;
@@ -19828,7 +19837,7 @@ buildThermal = async function(c, qty){
   const all = mb.items, parts = [];
   try{ for (const it of all){ mb.items = [it]; parts.push(await _buildThermalCut(c, qty)); } } finally { mb.items = all; }
   const pageLen = Math.max(...parts.map(p => p.pageLen));
-  return {html:parts.map(p => p.html).join(""), pageCSS:`@page{size:${parts[0].pw}mm ${pageLen}mm;margin:0}`, pw:parts[0].pw, pageLen, pages:parts.reduce((a, p) => a + p.pages, 0), inkEnd:parts[0].inkEnd, PL:parts[0].PL, want:parts[0].want};
+  return {html:parts.map(p => p.html).join(""), pageCSS:parts[0].auto ? parts[0].pageCSS : `@page{size:${parts[0].pw}mm ${pageLen}mm;margin:0}`, auto:parts[0].auto, pw:parts[0].pw, pageLen, pages:parts.reduce((a, p) => a + p.pages, 0), inkEnd:parts[0].inkEnd, PL:parts[0].PL, want:parts[0].want};
 };
 (function cutToggle(){
   const g = $("#thermalView .printgrp"); if (!g) return;
@@ -19889,7 +19898,10 @@ $("#aProdBtn").onclick = openLabelProducts;
    so (paper − page) ÷ 2 of empty paper comes out above the design. Measuring that gap tells us the real paper size. */
 const STD_PAPER = [200, 210, 250, 297, 3276];
 function fixTopGap(gap){
-  const c = cfg(), page = Math.max(paperLenOf(c) || 0, 81), real = page + 2 * gap;
+  const c = cfg();
+  if (paperAuto(c) && !c.gapTried){ c.gapTried = true; save(); toast("Paper is already set to “Same as the print window”. Print once more. If the space is still there, type it again and I'll set the paper size."); return 0; }
+  if (paperAuto(c)) c.paperLen = 200;
+  const page = Math.max(paperLenOf(c) || 0, 81), real = page + 2 * gap;
   const near = STD_PAPER.reduce((a, p) => Math.abs(p - real) < Math.abs(a - real) ? p : a, STD_PAPER[0]);
   const PLn = Math.abs(near - real) <= 25 ? near : Math.round(real);
   c.paperLen = PLn; c.mt = Math.min(c.mt || 0, 2); save();
@@ -19913,6 +19925,8 @@ renderPreview = async function(){
   const st = document.createElement("style"); st.textContent = `.gapfix{background:#fff7e0;border:1px solid #f1d58a;border-radius:10px;padding:10px 12px;margin:6px 0 10px;display:flex;flex-direction:column;gap:2px;font-size:13px}.gapfix span{color:var(--muted);font-size:12px}`;
   document.head.appendChild(st);
 })();
+// one-time switch: thermal printers use the print window's paper (fixes empty space above the design)
+if (!S.prefs.paperAutoV1){ try{ Object.values(S.settings || {}).forEach(c => { if (c && kindOf(c) === "thermal") c.paperLen = "auto"; }); }catch(e){} S.prefs.paperAutoV1 = true; save(); }
 
 
 /* ---------------- boot ---------------- */
