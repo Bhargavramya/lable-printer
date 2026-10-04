@@ -1,0 +1,14 @@
+{
+  "name": "Label Print · Lalitha Naturals",
+  "short_name": "Label Print",
+  "description": "Design and print labels, rack tags and 80 mm thermal slips for Lalitha Naturals.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E9EEE8",
+  "theme_color": "#2E6A45",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
