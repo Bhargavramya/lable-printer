@@ -269,6 +269,8 @@ body.simple #label .el.sel{outline:2px solid var(--sel)}
 .choice span{color:var(--muted);font-size:13.5px}
 @media (max-width:600px){.choices{grid-template-columns:1fr}}
 .setbody{padding:16px;display:flex;flex-direction:column;gap:20px}
+.dialog>.setbody{overflow:auto;min-height:0;flex:1 1 auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.dialog>.setbody>*{flex-shrink:0}
 .setsec h3{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
 .setsec .hint{margin-bottom:8px}
 .sztable{width:100%;border-collapse:collapse;font-size:13px}
@@ -476,7 +478,8 @@ body.staff #modeBtn,body.staff #freeAdd,body.staff .bordbtn,body.staff #tTidy,bo
   .pprow{grid-template-columns:24px 1fr auto}.pprow .ppsz{display:none}
 }
 .shtable{display:flex;flex-direction:column;gap:6px;overflow-x:auto}
-.shrow{display:grid;grid-template-columns:24px 1.1fr 1.5fr .7fr .8fr .9fr 1fr auto;gap:6px;align-items:center;min-width:760px}
+.shrow{display:grid;grid-template-columns:24px minmax(0,1.1fr) minmax(0,1.5fr) minmax(0,.7fr) minmax(0,.8fr) minmax(0,.9fr) minmax(0,1fr) 78px;gap:6px;align-items:center;min-width:720px}
+.shrow .fin{min-width:0;width:100%;box-sizing:border-box}
 .shrow.shhead span{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
 .shrow .ptno{padding-top:0}.shsave{font-size:12px;color:#1f6b3a;font-weight:600}
 #tPaper .sf:empty::before{content:attr(data-ph);color:#9aa39c}
