@@ -15736,7 +15736,7 @@ function tBlockHTML(b, u, c, edit){
   } else if (b.t === "cards"){
     const fs = b.size * PT, v = b.variant || 0, acc = b.acc || "#000", cbg = b.cbg || "#fff", fg = b.fg || (v === 6 ? "#fff" : "#000"), pc = b.pc || (v === 6 ? "#fff" : fg);
     const bk = b.border === false ? 0 : (b.bwk ?? 1), B = v => u(v * bk), hid = k => b["hide_" + k];
-    const f = (i, k, val, st, ph) => (edit || val) && !hid(k) ? `<div class="cf"${ce} data-i="${i}" data-f="${k}" data-ph="${ph}" style="${st};white-space:pre-wrap;overflow-wrap:anywhere">${esc(val || "")}</div>` : "";
+    const f = (i, k, val, st, ph) => (edit || val) && !hid(k) ? `<div class="cf"${ce} data-i="${i}" data-f="${k}" data-ph="${ph}" style="${fzScale(st, fzOf(b, k))};white-space:pre-wrap;overflow-wrap:anywhere">${esc(val || "")}</div>` : "";
     const pk = b.padk ?? 1, pad = `${u(fs * 0.45 * pk)} ${u(fs * 0.4 * pk)}`, tfg = b.tfg || "#fff";
     const pill = (bgc, fgc) => `background:${bgc};color:${fgc};font-weight:700;font-size:${u(fs * (b.ts || 0.6))};padding:${u(fs * 0.08)} ${u(fs * 0.35)};border-radius:${u(1)};line-height:1.3`;
     const nameSt = `font-weight:${b.nlight ? 500 : 700};font-size:${u(fs)};line-height:1.2;text-transform:${b.upper ? "uppercase" : "none"}`, oldSt = `text-decoration:line-through;font-size:${u(fs * 0.75)};line-height:1.2;opacity:.8`;
@@ -15858,7 +15858,7 @@ function renderTFloat(){
   } else if (b.t === "expiry"){
     h += `<button class="fb" data-g="exp">📅 Days &amp; dates</button>` + sep + sz(r2(b.size)) + sep + `<button class="fb" data-g="bold" aria-pressed="${!!b.bold}"><b>B</b></button>`;
   } else if (b.t === "cards"){
-    h += sz(r2(b.size)) + sep + `<span class="fcap">Columns</span><button class="fb" data-g="colm">−</button><span class="fsz">${b.cols}</span><button class="fb" data-g="colp">+</button>` + sep +
+    h += partSz(b) + sep + `<span class="fcap">Columns</span><button class="fb" data-g="colm">−</button><span class="fsz">${b.cols}</span><button class="fb" data-g="colp">+</button>` + sep +
       `<button class="fb" data-g="cardedit">⚙️ Customize</button><button class="fb" data-g="cardstyle">🎨 Style</button><button class="fb" data-g="addcard">+ Card</button><button class="fb" data-g="delcard">− Card</button><button class="fb" data-g="border" aria-pressed="${!!b.border}">Border</button>`;
   } else if (b.t === "line"){
     h += `<button class="fb" data-g="solid" aria-pressed="${!b.dashed}">Solid</button><button class="fb" data-g="dashed" aria-pressed="${!!b.dashed}">Dashed</button>` + sep + `<span class="fcap">Thickness</span>` + sz(null);
@@ -15871,7 +15871,7 @@ function renderTFloat(){
     h += (b.binary ? `<span class="fcap">QR from a file</span>` : `<input class="fin" data-g="data" value="${esc(b.data)}" placeholder="Link or text" spellcheck="false">`) +
       `<button class="fb" data-g="qrtools">QR tools</button>` + sep + sz(null);
   } else if (b.t === "shelf"){
-    h += `<button class="fb" data-g="shedit">✏️ Edit tags</button>` + sep + sz(r2(b.size)) + sep + `<span class="fcap">In a row</span><button class="fb" data-g="colm">−</button><span class="fsz">${b.cols}</span><button class="fb" data-g="colp">+</button>` + sep +
+    h += `<button class="fb" data-g="shedit">✏️ Edit tags</button>` + sep + partSz(b) + sep + `<span class="fcap">In a row</span><button class="fb" data-g="colm">−</button><span class="fsz">${b.cols}</span><button class="fb" data-g="colp">+</button>` + sep +
       `<button class="fb" data-g="shcol" aria-pressed="${!!b.colour}" title="Switch black & white / colour">${b.colour ? "🎨 Colour" : "⚫ Black & white"}</button><button class="fb" data-g="shvar" title="Next style">Style: ${SHELF_VARIANTS[b.variant || 0]}</button>` + (b.colour ? `<button class="fb" data-g="shpal" title="Next colours">Colours: ${PALETTES[b.pal || 0].n}</button>` : "");
   } else if (b.t === "ptable"){
     h += `<button class="fb" data-g="ptedit">✏️ Edit table</button>` + sep + sz(r2(b.size)) + sep + `<button class="fb" data-g="ptadd">+ Row</button><button class="fb" data-g="ptdel">− Row</button>` + ptCellTools(b);
@@ -15884,6 +15884,16 @@ function renderTFloat(){
   h += sep + `<button class="fb" data-g="up" title="Move up">${TICON.up}</button><button class="fb" data-g="down" title="Move down">${TICON.down}</button><button class="fb" data-g="dup" title="Duplicate here">⧉</button><button class="fb" data-g="copy" title="Copy (Ctrl+C) to paste in any design">${TICON.copy}Copy</button><button class="fb del" data-g="del" title="Remove">${ICS.x}Remove</button>`;
   F.innerHTML = h; F.hidden = false; tPosFloat();
 }
+// text size for one part (price, name, MRP…) or for the whole block
+const CARD_PARTS = [["tag", "Offer tag"], ["name", "Item name"], ["old", "Old price"], ["price", "Price"], ["note", "Note"]];
+function partSz(b){
+  const parts = b.t === "shelf" ? SHELF_PARTS : CARD_PARTS, k = S.tPart && S.tPart.bid === b.id ? S.tPart.k : "";
+  const any = Object.values(b.fz || {}).some(v => +v !== 1);
+  return `<select class="fin" data-g="part" title="Which text to make bigger or smaller" style="width:auto;max-width:150px"><option value="">All text</option>${parts.map(([pk, n]) => `<option value="${pk}" ${k === pk ? "selected" : ""}>${n}</option>`).join("")}</select>` +
+    `<div class="fgrp"><button class="fb big" data-g="smaller" title="Smaller">A−</button><span class="fsz">${k ? Math.round(fzOf(b, k) * 100) + "%" : r2(b.size)}</span><button class="fb big" data-g="bigger" title="Bigger">A+</button></div>` +
+    (any ? `<button class="fb" data-g="fzreset" title="All texts back to normal size">Reset sizes</button>` : "");
+}
+$("#tFtb").addEventListener("change", e => { if (e.target.dataset.g !== "part") return; const b = tSel(); if (!b) return; S.tPart = {bid:b.id, k:e.target.value}; renderTFloat(); });
 function tPosFloat(){
   const F = $("#tFtb"), b = tSel(); if (F.hidden || !b) return;
   if (dockBar(F, $("#thermalView .sbottom"))) return;
@@ -15938,7 +15948,8 @@ function tDragEnd(){
   renderThermal();
 }
 TPp.addEventListener("pointerup", tDragEnd); TPp.addEventListener("pointercancel", tDragEnd);
-TPp.addEventListener("focusin", e => { const n = e.target.closest(".tblk"); if (n){ tSelect(n.dataset.bid); S.tPre = JSON.stringify(tdoc()); } });
+TPp.addEventListener("focusin", e => { const n = e.target.closest(".tblk"); if (n){ tSelect(n.dataset.bid); S.tPre = JSON.stringify(tdoc());
+  const pt = e.target.closest(".sf,.cf"), k = pt ? (pt.dataset.sf || pt.dataset.f) : ""; if (k && !(S.tPart && S.tPart.bid === n.dataset.bid && S.tPart.k === k)){ S.tPart = {bid:n.dataset.bid, k}; renderTFloat(); } } });
 TPp.addEventListener("focusout", e => { if (S.tPre && S.tPre !== JSON.stringify(tdoc())){ TU.push(S.tPre); TR = []; updUndo(); } S.tPre = null; });
 TPp.addEventListener("input", e => {
   const n = e.target.closest(".tblk"); if (!n) return; const b = tblocks().find(x => x.id === n.dataset.bid); if (!b) return;
@@ -15981,7 +15992,9 @@ $("#tFtb").addEventListener("click", e => {
   if (g === "list3"){ openListForm(b); return; }
   if (g === "qrtools"){ openQr(null); QS.tTarget = b.id; if (!b.binary){ QS.tab = "text"; QS.fields.text = b.data; renderQrForm(); } return; }
   tsnap();
-  const d = g === "bigger" ? 1 : g === "smaller" ? -1 : 0;
+  let d = g === "bigger" ? 1 : g === "smaller" ? -1 : 0;
+  if (g === "fzreset") b.fz = {};
+  if (d && (b.t === "shelf" || b.t === "cards") && S.tPart && S.tPart.bid === b.id && S.tPart.k){ b.fz = b.fz || {}; b.fz[S.tPart.k] = r2(Math.max(0.4, Math.min(3, fzOf(b, S.tPart.k) + d * 0.1))); d = 0; }
   if (d){
     if (b.t === "text" || b.t === "table" || b.t === "cards" || b.t === "expiry" || b.t === "roster" || b.t === "list3" || b.t === "ptable" || b.t === "shelf") b.size = r2(Math.max(5, Math.min(90, b.size + d * (b.size < 12 ? 0.5 : b.size < 24 ? 1 : 2))));
     if (b.t === "line") b.th = r2(Math.max(0.2, Math.min(2, b.th + d * 0.2)));
@@ -17161,15 +17174,16 @@ function ALL_LABEL(){
   }
   return out;
 }
+const L_ARCH_NEW = ["Price side", "Bands", "Stamp", "Big number"];
 function genLabel(g, c0){
   const c = Object.assign({}, c0), W0 = c.w, H0 = c.h, out = [], sh = shopInfo(), td = today();
   const P = getProducts()[g.pi % getProducts().length], C = L_PURPOSES[g.pu].c(P, sh, td), [hf, bf] = FPAIRS[g.fp];
   const small = Math.min(W0, H0) < 32, m0 = Math.max(1, Math.min(W0, H0) * 0.055);
-  let arch = L_ARCH[g.arch]; if (arch === "Circle" && Math.abs(W0 - H0) > Math.min(W0, H0) * 0.35) arch = "Classic";
+  let arch = g.archN || L_ARCH[g.arch]; if (arch === "Price side" && (W0 < H0 * 0.9 || !(C.big || C.qr || C.bc))) arch = "Bands"; if (arch === "Circle" && Math.abs(W0 - H0) > Math.min(W0, H0) * 0.35) arch = "Classic";
   if (arch === "Split" && W0 < H0 * 0.9) arch = "Price box";
   // frame
   let ins = 0; const F = L_FRAME[g.frame], bw = {Thin:0.35, Thick:0.8, Rounded:0.5, Double:1.2, Dashed:0.45}[F];
-  const frameArch = ["Circle", "Classic"].includes(arch);
+  const frameArch = ["Circle", "Classic", "Price side", "Bands", "Stamp"].includes(arch);
   if (!frameArch && bw){ const e2 = Math.max(0.7, m0 * 0.45); out.push(SH({name:"Border", x:e2, y:e2, w:r2(W0 - 2 * e2), h:r2(H0 - 2 * e2), fill:"transparent", stroke:"#000000", sw:bw, radius:F === "Rounded" ? Math.min(4, H0 * 0.08) : 0.5, dash:F === "Dashed", dbl:F === "Double"})); ins = e2 + bw; }
   if (!frameArch && F === "Corners"){ const L = Math.min(W0, H0) * 0.14, t = 0.5, e2 = m0 * 0.5;
     [[e2, e2, L, t], [e2, e2, t, L], [W0 - e2 - L, e2, L, t], [W0 - e2 - t, e2, t, L], [e2, H0 - e2 - t, L, t], [e2, H0 - e2 - L, t, L], [W0 - e2 - L, H0 - e2 - t, L, t], [W0 - e2 - t, H0 - e2 - L, t, L]]
@@ -17226,9 +17240,29 @@ function genLabel(g, c0){
     out.push(IMG({name:"Logo", src:"@logo", x:r2(box.x), y:r2(box.y + (hh - lw / logoAR) / 2), w:r2(lw), h:r2(lw / logoAR)}));
     if (tagRow) placeRows(out, [Object.assign({}, tagRow, {w:1})], {x:box.x + lw + 2, y:box.y, w:box.w - lw - 2, h:hh}, "right");
     out.push(SH({x:r2(box.x), y:r2(box.y + hh + 0.5), w:r2(box.w), h:0.4})); box = {x:box.x, y:box.y + hh + 1.5, w:box.w, h:box.h - hh - 1.5}; if (tagRow) rows.splice(rows.indexOf(tagRow), 1); }
+  if (arch === "Price side"){ const pi = rows.findIndex(x => x.nm === "Price" || x.k === "qr" || x.k === "bc");
+    const sw2 = W0 * 0.4; out.push(SH({name:"Price block", x:r2(W0 - sw2), y:0, w:r2(sw2), h:H0, fill:"#000000", radius:0}), SH({name:"Border", x:0.4, y:0.4, w:r2(W0 - 0.8), h:r2(H0 - 0.8), fill:"transparent", stroke:"#000000", sw:0.5, radius:0.5}));
+    if (pi >= 0){ const side = rows.splice(pi, 1)[0];
+      if (side.k === "t") placeRows(out, [Object.assign({}, side, {w:1, color:"#ffffff", st:"", lines:2})], {x:W0 - sw2 + m * 0.6, y:m, w:sw2 - m * 1.2, h:H0 - 2 * m}, "center");
+      else { out.push(SH({x:r2(W0 - sw2 + m * 0.5), y:r2(m * 0.8), w:r2(sw2 - m), h:r2(H0 - 1.6 * m), fill:"#ffffff", radius:1})); placeRows(out, [Object.assign({}, side, {w:1})], {x:W0 - sw2 + m, y:m * 1.3, w:sw2 - 2 * m, h:H0 - 2.6 * m}, "center"); } }
+    box = {x:m, y:m, w:W0 - sw2 - m * 1.6, h:H0 - 2 * m}; }
+  if (arch === "Bands"){ const ti = rows.findIndex(x => x.k === "t"); const top = ti >= 0 ? rows.splice(ti, 1)[0] : null;
+    let pi = rows.findIndex(x => x.nm === "Price"); if (pi < 0) pi = rows.map(x => x.k).lastIndexOf("t"); const bot = pi >= 0 && rows.length > 1 ? rows.splice(pi, 1)[0] : null; const hb = H0 * 0.25;
+    if (top){ out.push(SH({name:"Top band", x:0, y:0, w:W0, h:r2(hb), fill:"#000000", radius:0})); placeRows(out, [Object.assign({}, top, {w:1, color:"#ffffff", st:"", lines:2})], {x:m, y:hb * 0.14, w:W0 - 2 * m, h:hb * 0.72}, "center"); }
+    if (bot){ out.push(SH({name:"Bottom band", x:0, y:r2(H0 - hb), w:W0, h:r2(hb), fill:"#000000", radius:0})); placeRows(out, [Object.assign({}, bot, {w:1, color:"#ffffff", st:"", lines:1})], {x:m, y:H0 - hb * 0.86, w:W0 - 2 * m, h:hb * 0.72}, "center"); }
+    box = {x:m, y:(top ? hb : 0) + m * 0.6, w:W0 - 2 * m, h:H0 - (top ? hb : 0) - (bot ? hb : 0) - m * 1.2}; for (let i = rows.length - 1; i >= 0; i--) if (rows[i].k === "logo" && box.h < 14) rows.splice(i, 1); }
+  if (arch === "Stamp"){ const e2 = m0 * 0.5 + 0.6, th2 = Math.min(6, H0 * 0.15), rr = Math.min(5, H0 * 0.12);
+    out.push(SH({name:"Border", x:r2(e2), y:r2(e2 + th2 / 2), w:r2(W0 - 2 * e2), h:r2(H0 - 2 * e2 - th2 / 2), fill:"transparent", stroke:"#000000", sw:1.1, radius:rr}),
+      SH({name:"Inner line", x:r2(e2 + 1.6), y:r2(e2 + th2 / 2 + 1.6), w:r2(W0 - 2 * e2 - 3.2), h:r2(H0 - 2 * e2 - th2 / 2 - 3.2), fill:"transparent", stroke:"#000000", sw:0.3, radius:Math.max(0.5, rr - 1.2)}));
+    const tg = rows.find(x => x.nm === "Tag") || {k:"t", t:C.veg ? "PURE VEG" : "100% NATURAL", w:1, b:1, f:bf, nm:"Tag"}; if (rows.includes(tg)) rows.splice(rows.indexOf(tg), 1);
+    placeRows(out, [Object.assign({}, tg, {w:1, st:"pill"})], {x:W0 * 0.2, y:e2, w:W0 * 0.6, h:th2}, "center");
+    box = {x:e2 + 3.2, y:e2 + th2 + 1.8, w:W0 - 2 * e2 - 6.4, h:H0 - 2 * e2 - th2 - 4.2}; }
+  if (arch === "Big number"){ const pr = rows.find(x => x.nm === "Price") || rows.find(x => x.nm === "Title"); if (pr){ pr.w = Math.max(4.5, rows.reduce((a, r) => a + (r.k === "t" && r !== pr ? r.w : 0), 0) * 1.1); pr.st = ""; }
+    for (let i = rows.length - 1; i >= 0; i--) if ((rows[i].k === "logo" || rows[i].lo) && rows.length > 3) rows.splice(i, 1);
+    if (C.veg){ const s2 = Math.max(3, Math.min(W0, H0) * 0.1) + 0.8; box = {x:box.x, y:box.y + s2, w:box.w, h:box.h - s2}; } }
   if (arch === "Minimal"){ const ti = rows.findIndex(x => x.nm === "Title"); if (ti >= 0) rows.splice(ti + 1, 0, {k:"line", wfrac:0.35}); }
   if (rows.length) placeRows(out, rows, box, al);
-  if (C.veg){ const s = Math.max(3, Math.min(W0, H0) * 0.1), x = W0 - m - s, y = arch === "Corner tag" ? m : m;
+  if (C.veg && !["Stamp", "Bands", "Price side"].includes(arch)){ const s = Math.max(3, Math.min(W0, H0) * 0.1), x = W0 - m - s, y = arch === "Corner tag" ? m : m;
     out.push(SH({name:"Veg mark", x:r2(x), y:r2(y), w:r2(s), h:r2(s), fill:"transparent", sw:0.35, stroke:"#000000", radius:0.3}), SH({x:r2(x + s * 0.25), y:r2(y + s * 0.25), w:r2(s * 0.5), h:r2(s * 0.5), round:true, fill:"#000000"})); }
   return {els:out, h:c.h};
 }
@@ -18737,7 +18771,12 @@ function initTe(){
 initTe();
 
 /* ---------------- shelf price tags (SP · YOU SAVE · MRP · brand · item · size) ---------------- */
-const SHELF_VARIANTS = ["Classic (dashed)", "Solid frame", "Price band", "Corner badge", "Side strip", "Top banner"];
+const SHELF_VARIANTS = ["Classic (dashed)", "Solid frame", "Price band", "Corner badge", "Side strip", "Top banner",
+  "Big price left", "Centre stack", "Ticket", "Bold black", "Minimal lines", "Circle price", "Hang tag", "% OFF ribbon", "Two-tone"];
+// every text on a tag can be made bigger or smaller on its own (b.fz = {part: factor})
+const SHELF_PARTS = [["sp", "Selling price"], ["spw", "“SP” word"], ["save", "You save / % OFF"], ["mrp", "MRP price"], ["mrpw", "“MRP” word"], ["brand", "Brand"], ["name", "Item name"], ["size", "Size"]];
+const fzOf = (b, k) => +((b.fz || {})[k] || 1);
+const fzScale = (st, z) => z === 1 ? st : st.replace(/font-size:([\d.]+)(px|mm)/, (m, n, un) => `font-size:${r2(n * z)}${un}`);
 const SHELF_SAMPLE = () => [
   {brand:"Lalitha Naturals", name:"Groundnut Oil", size:"1 L", mrp:"420", sp:"390"}, {brand:"Lalitha Naturals", name:"Sesame Oil", size:"1 L", mrp:"520", sp:"480"},
   {brand:"Lalitha Naturals", name:"Coconut Oil", size:"1 L", mrp:"600", sp:"550"}, {brand:"Lalitha Naturals", name:"Mustard Oil", size:"1 L", mrp:"540", sp:"495"},
@@ -18752,7 +18791,8 @@ function shelfColours(b){ // black & white, or a colour palette
 function shelfHTML(b, u, edit, ce){
   const fs = b.size * PT, C = shelfColours(b), v = b.variant || 0, up = b.upper !== false;
   const fam = `'${b.font || "Roboto"}',${FALLBACK(b.font || "Roboto")}`;
-  const f = (i, k, val, st, ph) => `<span class="sf"${ce} data-si="${i}" data-sf="${k}" data-ph="${ph}" style="${st};white-space:pre-wrap;overflow-wrap:anywhere">${esc(val || "")}</span>`;
+  const Z = k => fzOf(b, k);
+  const f = (i, k, val, st, ph) => `<span class="sf"${ce} data-si="${i}" data-sf="${k}" data-ph="${ph}" style="${fzScale(st, Z(k))};${k === "sp" || k === "mrp" ? "white-space:nowrap" : "white-space:pre-wrap;overflow-wrap:anywhere"}">${esc(val || "")}</span>`;
   const cards = b.items.map((it, i) => {
     const mrp = pnum(it.mrp), sp = pnum(it.sp), save = mrp - sp, pct = mrp > 0 && save > 0 ? Math.round(save / mrp * 100) : 0;
     const spTxt = sp ? shelfMoney(sp, b.dec) : (edit ? "" : ""), mrpTxt = mrp ? shelfMoney(mrp, b.dec) : "";
@@ -18764,21 +18804,79 @@ function shelfHTML(b, u, edit, ce){
     if (b.cut === false) border = border.replace(/dashed/, "solid");
     const pad = u(fs * 0.9);
     const top = `<div style="text-align:center;${band ? `background:${C.acc};color:${C.accFg};margin:-${pad} -${pad} 0;padding:${u(fs * 0.6)} ${pad} ${u(fs * 0.5)};border-radius:${u(1.6)} ${u(1.6)} 0 0;` : ""}">
-      ${v === 5 && pct ? `<div style="font-weight:800;font-size:${u(fs * 1.25)};letter-spacing:${u(0.3)}">★ ${pct}% OFF ★</div>` : ""}
+      ${v === 5 && pct ? `<div style="font-weight:800;font-size:${u(fs * 1.25 * Z("save"))};letter-spacing:${u(0.3)}">★ ${pct}% OFF ★</div>` : ""}
       <div style="display:flex;align-items:baseline;justify-content:center;gap:${u(fs * 0.5)};line-height:1.05">
-        <span style="font-weight:700;font-size:${u(fs * 1.15)}">${b.spWord || "SP"}</span>${f(i, "sp", edit ? (it.sp ? shelfMoney(sp, b.dec) : "") : spTxt, `font-weight:800;font-size:${u(fs * 3.6)};letter-spacing:${u(-0.1)};color:${band ? C.accFg : (b.colour ? C.acc : C.ink)}`, "₹0.00")}</div>
-      ${saveTxt ? `<div style="font-weight:700;font-size:${u(fs * 1.1)};margin-top:${u(fs * 0.25)};${band ? "" : `color:${b.colour ? C.save : C.ink}`}">${saveTxt}</div>` : ""}</div>`;
+        <span style="font-weight:700;font-size:${u(fs * 1.15 * Z("spw"))}">${b.spWord || "SP"}</span>${f(i, "sp", edit ? (it.sp ? shelfMoney(sp, b.dec) : "") : spTxt, `font-weight:800;font-size:${u(fs * 3.6)};letter-spacing:${u(-0.1)};color:${band ? C.accFg : (b.colour ? C.acc : C.ink)}`, "₹0.00")}</div>
+      ${saveTxt ? `<div style="font-weight:700;font-size:${u(fs * 1.1 * Z("save"))};margin-top:${u(fs * 0.25)};${band ? "" : `color:${b.colour ? C.save : C.ink}`}">${saveTxt}</div>` : ""}</div>`;
     const rule = `<div style="border-top:${u(Math.max(0.5, fs * 0.22))} solid ${band ? "transparent" : C.ink};margin:${u(fs * (band ? 0.2 : 0.6))} 0 ${u(fs * 0.45)}"></div>`;
     const bottom = `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:${u(fs * 0.8)};color:${C.ink}">
-      <div style="flex:none;line-height:1.15"><div style="font-weight:700;font-size:${u(fs * 1.15)}">${b.mrpWord || "MRP"}</div>${f(i, "mrp", edit ? (it.mrp ? shelfMoney(mrp, b.dec) : "") : mrpTxt, `display:block;font-weight:800;font-size:${u(fs * 2.1)};${b.strike ? "text-decoration:line-through;" : ""}`, "₹0.00")}</div>
+      ${mrp || edit ? `<div style="flex:none;line-height:1.15"><div style="font-weight:700;font-size:${u(fs * 1.15 * Z("mrpw"))}">${b.mrpWord || "MRP"}</div>${f(i, "mrp", edit ? (it.mrp ? shelfMoney(mrp, b.dec) : "") : mrpTxt, `display:block;font-weight:800;font-size:${u(fs * 2.1)};${b.strike ? "text-decoration:line-through;" : ""}`, "₹0.00")}</div>` : "<div></div>"}
       <div style="text-align:right;line-height:1.12;min-width:0;text-transform:${up ? "uppercase" : "none"}">
         ${(it.brand || edit) && b.showBrand !== false ? `<div>${f(i, "brand", it.brand, `font-weight:700;font-size:${u(fs * 1.55)};${b.colour ? `color:${C.acc}` : ""}`, "Brand name")}</div>` : ""}
         <div>${f(i, "name", it.name, `font-weight:800;font-size:${u(fs * 1.95)}`, "Item name")}</div>
         ${(it.size || edit) ? `<div>${f(i, "size", it.size, `font-weight:700;font-size:${u(fs * 1.2)}`, "Size")}</div>` : ""}</div></div>`;
     const badge = v === 3 && pct ? `<div style="position:absolute;right:${u(-1)};top:${u(-1)};width:${u(fs * 4.2)};height:${u(fs * 4.2)};border-radius:50%;background:${b.colour ? C.save : "#000"};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;line-height:1;font-size:${u(fs * 1.25)};transform:rotate(12deg)"><span>${pct}%</span><span style="font-size:${u(fs * 0.8)}">OFF</span></div>` : "";
+    if (v >= 6) return shelfNew(b, it, i, {u, fs, C, up, fam, f, Z, edit, mrp, sp, pct, saveTxt, mrpTxt, spTxt});
     return `<div class="shelf1" style="position:relative;${border}padding:${pad};background:${v === 4 && b.colour ? C.tint : C.bg};font-family:${fam};color:${C.ink};break-inside:avoid;page-break-inside:avoid;box-sizing:border-box;overflow:hidden">${badge}${top}${rule}${bottom}</div>`;
   });
   return `<div style="display:grid;grid-template-columns:repeat(${b.cols || 2},minmax(0,1fr));gap:${u(b.gap ?? 4)}">${cards.join("")}</div>`;
+}
+// the newer tag layouts (6–14)
+function shelfNew(b, it, i, o){
+  const {u, fs, C, up, fam, f, Z, edit, mrp, sp, pct, saveTxt} = o, v = b.variant;
+  const spV = edit ? (it.sp ? shelfMoney(sp, b.dec) : "") : (sp ? shelfMoney(sp, b.dec) : ""), mrpV = edit ? (it.mrp ? shelfMoney(mrp, b.dec) : "") : (mrp ? shelfMoney(mrp, b.dec) : "");
+  const hasMrp = mrp > 0 || edit, acc = C.acc, onAcc = C.accFg, tt = up ? "uppercase" : "none";
+  const W = (k, t, n, x) => `<span style="font-size:${u(fs * n * Z(k))};${x || ""}">${t}</span>`;
+  const SP = (n, x, fit) => f(i, "sp", spV, fit && spV.length > fit ? `font-weight:800;font-size:${u(fs * n * fit / spV.length)};line-height:1;letter-spacing:${u(-0.1)};${x || ""}` : `font-weight:800;font-size:${u(fs * n)};line-height:1;letter-spacing:${u(-0.1)};${x || ""}`, "₹0.00");
+  const MRPline = (n, x) => hasMrp ? `<div style="line-height:1.2;${x || ""}">${W("mrpw", b.mrpWord || "MRP", n * 0.8, "font-weight:700")} ${f(i, "mrp", mrpV, `font-weight:700;font-size:${u(fs * n)};${b.strike !== false ? "text-decoration:line-through;" : ""}`, "₹0.00")}</div>` : "";
+  const brand = (n, x) => (it.brand || edit) && b.showBrand !== false ? `<div>${f(i, "brand", it.brand, `font-weight:700;font-size:${u(fs * n)};${x || ""}`, "Brand name")}</div>` : "";
+  const name = (n, x) => `<div>${f(i, "name", it.name, `font-weight:800;font-size:${u(fs * n)};${x || ""}`, "Item name")}</div>`;
+  const size = (n, x) => (it.size || edit) ? `<div>${f(i, "size", it.size, `font-weight:700;font-size:${u(fs * n)};${x || ""}`, "Size")}</div>` : "";
+  const pctTxt = pct && b.showSave !== false ? `${pct}% OFF` : "", saveShort = pct && b.showSave !== false ? `${b.saveWord || "YOU SAVE"} ${shelfMoney(mrp - sp, b.dec)}` : "";
+  const box = (x) => `<div class="shelf1" style="position:relative;font-family:${fam};color:${C.ink};background:#fff;break-inside:avoid;page-break-inside:avoid;box-sizing:border-box;overflow:hidden;${x}">`;
+  const pad = u(fs * 0.8), lh = "line-height:1.12;text-transform:" + tt;
+  if (v === 6) return box(`border:${u(0.7)} solid ${acc};border-radius:${u(2)};display:flex;align-items:stretch`) +
+    `<div style="background:${acc};color:${onAcc};padding:${pad};display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:42%;text-align:center">
+      ${W("spw", b.spWord || "OUR PRICE", 1, "font-weight:700;letter-spacing:" + u(0.2))}${SP(3.3, "color:" + onAcc, 6.5)}${pctTxt ? W("save", pctTxt, 1.2, "font-weight:800;margin-top:" + u(fs * 0.3)) : ""}</div>
+    <div style="flex:1;min-width:0;padding:${pad};display:flex;flex-direction:column;justify-content:center;gap:${u(fs * 0.2)};${lh}">${brand(1.25, b.colour ? "color:" + acc : "")}${name(1.9)}${size(1.15)}${MRPline(1.3, "margin-top:" + u(fs * 0.3))}</div></div>`;
+  if (v === 7) return box(`border:${u(0.5)} solid ${acc};border-radius:${u(3)};padding:${pad};text-align:center`) +
+    `<div style="${lh}">${name(2)}<div style="display:flex;justify-content:center;gap:${u(fs * 0.6)};align-items:baseline">${size(1.15)}${brand(1.05, "opacity:.85")}</div></div>
+    <div style="border-top:${u(0.4)} dotted ${C.ink};margin:${u(fs * 0.5)} ${u(fs * 2)}"></div>
+    <div style="display:flex;justify-content:center;align-items:baseline;gap:${u(fs * 0.4)}">${W("spw", b.spWord || "SP", 1.1, "font-weight:700")}${SP(3.6, b.colour ? "color:" + acc : "")}</div>
+    <div style="display:flex;justify-content:center;align-items:center;gap:${u(fs * 0.6)};margin-top:${u(fs * 0.3)};flex-wrap:wrap">${MRPline(1.2)}${pctTxt ? `<span style="background:${acc};color:${onAcc};border-radius:${u(fs)};padding:${u(fs * 0.15)} ${u(fs * 0.6)};font-weight:800;font-size:${u(fs * 1.1 * Z("save"))}">${saveShort ? saveShort + " · " : ""}${pctTxt}</span>` : ""}</div></div>`;
+  if (v === 8){ const nr = fs * 1.1, at = "62%";
+    return box(`border:${u(0.6)} solid ${acc};border-radius:${u(2)};display:flex;align-items:stretch`) +
+    `<div style="flex:0 0 ${at};padding:${pad};display:flex;flex-direction:column;justify-content:center;gap:${u(fs * 0.15)};${lh}">${brand(1.15, b.colour ? "color:" + acc : "")}${name(1.9)}${size(1.15)}${MRPline(1.2, "margin-top:" + u(fs * 0.3))}</div>
+    <div style="position:absolute;left:${at};top:${u(-nr)};width:${u(nr * 2)};height:${u(nr * 2)};margin-left:${u(-nr)};border-radius:50%;border:${u(0.6)} solid ${acc};background:#fff;box-sizing:border-box"></div>
+    <div style="position:absolute;left:${at};bottom:${u(-nr)};width:${u(nr * 2)};height:${u(nr * 2)};margin-left:${u(-nr)};border-radius:50%;border:${u(0.6)} solid ${acc};background:#fff;box-sizing:border-box"></div>
+    <div style="flex:1;border-left:${u(0.5)} dashed ${acc};padding:${pad};display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">${W("spw", b.spWord || "SP", 1, "font-weight:700")}${SP(2.9, b.colour ? "color:" + acc : "", 6)}${pctTxt ? W("save", pctTxt, 1.1, "font-weight:800;margin-top:" + u(fs * 0.3)) : ""}</div></div>`; }
+  if (v === 9) return box(`background:${acc};color:${onAcc};border-radius:${u(2.5)};padding:${pad};text-align:center`) +
+    `<div style="${lh}">${brand(1.1, "opacity:.9")}${name(2)}${size(1.1)}</div>
+    <div style="display:flex;justify-content:center;align-items:baseline;gap:${u(fs * 0.4)};margin:${u(fs * 0.4)} 0 ${u(fs * 0.2)}">${W("spw", b.spWord || "SP", 1.1, "font-weight:700")}${SP(3.8, "color:" + onAcc)}</div>
+    <div style="display:flex;justify-content:center;gap:${u(fs * 0.8)};align-items:baseline;flex-wrap:wrap">${MRPline(1.2)}${pctTxt ? W("save", pctTxt, 1.25, `font-weight:800;background:${onAcc};color:${acc};padding:0 ${u(fs * 0.4)};border-radius:${u(0.8)}`) : ""}</div></div>`;
+  if (v === 10) return box(`border-top:${u(1.4)} solid ${acc};border-bottom:${u(0.4)} solid ${acc};padding:${u(fs * 0.5)} ${u(fs * 0.2)}`) +
+    `<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:${u(fs * 0.8)}"><div style="min-width:0;${lh}">${name(2)}<div style="display:flex;gap:${u(fs * 0.6)};align-items:baseline;flex-wrap:wrap">${size(1.15)}${brand(1.05, "font-weight:600;opacity:.8")}</div></div>
+      <div style="text-align:right;flex:none">${SP(3.3, b.colour ? "color:" + acc : "")}</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:${u(fs * 0.4)};gap:${u(fs * 0.6)}">${MRPline(1.2) || "<span></span>"}${saveTxt ? W("save", saveTxt, 1.05, "font-weight:700") : ""}</div></div>`;
+  if (v === 11){ const d = fs * 8.4;
+    return box(`border:${u(0.6)} solid ${acc};border-radius:${u(2)};padding:${pad};display:flex;align-items:center;gap:${u(fs * 0.8)}`) +
+    `<div style="flex:1;min-width:0;${lh};display:flex;flex-direction:column;gap:${u(fs * 0.15)}">${brand(1.15, b.colour ? "color:" + acc : "")}${name(1.9)}${size(1.15)}${MRPline(1.2, "margin-top:" + u(fs * 0.25))}${saveTxt ? W("save", saveTxt, 1, "font-weight:700") : ""}</div>
+    <div style="flex:none;width:${u(d)};height:${u(d)};border-radius:50%;background:${acc};color:${onAcc};display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">${W("spw", b.spWord || "ONLY", 1, "font-weight:700")}${SP(2.4, "color:" + onAcc, 5.6)}</div></div>`; }
+  if (v === 12) return box(`border:${u(0.7)} solid ${acc};border-radius:${u(fs * 1.4)};padding:${u(fs * 2.2)} ${pad} ${pad};text-align:center`) +
+    `<div style="position:absolute;left:50%;top:${u(fs * 0.6)};width:${u(fs * 1.1)};height:${u(fs * 1.1)};margin-left:${u(-fs * 0.55)};border-radius:50%;border:${u(0.5)} solid ${acc}"></div>
+    <div style="${lh}">${brand(1.05, "letter-spacing:" + u(0.4) + (b.colour ? ";color:" + acc : ""))}${name(1.9)}</div>
+    <div style="margin:${u(fs * 0.3)} 0">${SP(3.6, b.colour ? "color:" + acc : "")}</div>
+    <div style="display:flex;justify-content:center;gap:${u(fs * 0.8)};align-items:baseline;flex-wrap:wrap">${MRPline(1.15)}${size(1.15)}</div>${saveTxt ? `<div style="margin-top:${u(fs * 0.3)}">${W("save", saveTxt, 1, "font-weight:700")}</div>` : ""}</div>`;
+  if (v === 13) return box(`border:${u(0.6)} solid ${acc};border-radius:${u(2)};display:flex;align-items:stretch`) +
+    `${pctTxt ? `<div style="flex:none;background:${acc};color:${onAcc};writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:${u(fs * 0.5)} ${u(fs * 0.3)};font-weight:800;font-size:${u(fs * 1.35 * Z("save"))};letter-spacing:${u(0.3)}">${pctTxt}</div>` : ""}
+    <div style="flex:1;min-width:0;padding:${pad};display:flex;justify-content:space-between;align-items:center;gap:${u(fs * 0.8)}">
+      <div style="min-width:0;${lh}">${brand(1.1, b.colour ? "color:" + acc : "")}${name(1.9)}${size(1.15)}</div>
+      <div style="text-align:right;flex:none">${W("spw", b.spWord || "SP", 1, "font-weight:700;display:block")}${SP(3.1, b.colour ? "color:" + acc : "")}${MRPline(1.1, "margin-top:" + u(fs * 0.2))}</div></div></div>`;
+  return box(`border:${u(0.6)} solid ${acc};border-radius:${u(2)}`) + // 14 two-tone
+    `<div style="background:${acc};color:${onAcc};padding:${u(fs * 0.6)} ${pad};display:flex;justify-content:space-between;align-items:baseline;gap:${u(fs * 0.6)};${lh}"><div style="min-width:0">${name(1.8, "color:" + onAcc)}</div>${size(1.2, "color:" + onAcc)}</div>
+    <div style="padding:${u(fs * 0.6)} ${pad};display:flex;justify-content:space-between;align-items:center;gap:${u(fs * 0.8)}">
+      <div style="${lh}">${MRPline(1.3)}${brand(1.05, "opacity:.85")}${saveTxt ? W("save", saveTxt, 1, "font-weight:700") : ""}</div>
+      <div style="text-align:right;flex:none">${W("spw", b.spWord || "SP", 1, "font-weight:700")} ${SP(3.4, b.colour ? "color:" + acc : "")}</div></div></div>`;
 }
 const TSHELF = (o) => tb("shelf", Object.assign({items:SHELF_SAMPLE(), cols:2, size:8.5, variant:0, colour:false, pal:0, font:"Roboto", gap:4, upper:true, showSave:true, dec:true}, o || {}));
 const shelfSize = cols => ({1:15, 2:8.5, 3:6})[cols] || 8.5;
@@ -18787,7 +18885,7 @@ const shelfSize = cols => ({1:15, 2:8.5, 3:6})[cols] || 8.5;
 function SHELF_DESIGNS(){
   const out = [], sets = [{colour:false, n:"Black & white"}].concat([0, 2, 3, 4, 6, 7].map(pal => ({colour:true, pal, n:PALETTES[pal].n})));
   sets.forEach(s => SHELF_VARIANTS.forEach((vn, v) => [2, 3].forEach(cols => {
-    if (cols === 3 && (v === 4 || v === 5)) return;
+    if (cols === 3 && [4, 5, 6, 8, 11, 13, 14].includes(v)) return;
     out.push({n:`Shelf price tags · ${vn}`, cat:"Price", theme:"Shelf price tags", sub2:`${s.n} · ${cols} per row`, prod:"Oils", b:[TSHELF({variant:v, colour:s.colour, pal:s.pal || 0, cols, size:shelfSize(cols)})],
       bg:"", border:0, kw:`shelf price tag rack label sp mrp you save ${vn} ${s.n} ${s.colour ? "colour color" : "black white bw"}`.toLowerCase()});
   })));
@@ -18799,7 +18897,9 @@ const _renderCardPickerShelf = renderCardPicker;
 renderCardPicker = function(){
   _renderCardPickerShelf();
   const c = cfg(), K = 150 / c.w, u = v => (v * K) + "px", a4 = S.work === "a4";
-  const looks = [{colour:false, variant:0}, {colour:false, variant:2}, {colour:false, variant:3}, {colour:true, variant:2, pal:0}, {colour:true, variant:3, pal:2}, {colour:true, variant:4, pal:3}, {colour:true, variant:5, pal:6}, {colour:true, variant:1, pal:4}];
+  const looks = [{colour:false, variant:0}, {colour:false, variant:2}, {colour:false, variant:3}, {colour:true, variant:2, pal:0}, {colour:true, variant:3, pal:2}, {colour:true, variant:4, pal:3}, {colour:true, variant:5, pal:6}, {colour:true, variant:1, pal:4},
+    {colour:false, variant:6}, {colour:false, variant:7}, {colour:false, variant:8}, {colour:false, variant:9}, {colour:false, variant:10}, {colour:false, variant:11}, {colour:false, variant:12}, {colour:false, variant:13}, {colour:false, variant:14},
+    {colour:true, variant:6, pal:2}, {colour:true, variant:9, pal:0}, {colour:true, variant:11, pal:3}, {colour:true, variant:14, pal:4}];
   const prev = L => `<div class="mini" style="width:${u(c.w)};padding:${u(2)};background:#fff;text-align:left;max-height:170px;overflow:hidden">${tBlockHTML(TSHELF(Object.assign({items:SHELF_SAMPLE().slice(0, a4 ? 2 : 1), cols:a4 ? 2 : 1, size:a4 ? 8.5 : 6.5}, L)), u, c, false)}</div>`;
   $("#cardBody").insertAdjacentHTML("beforeend", `<div class="galhead">Shelf price tags · SP, You save, MRP, brand, item, size (black &amp; white and colour)</div><div class="gal" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">${looks.map((L, i) => `<button class="gcard" data-shelf="${i}">${prev(L)}<b>${L.colour ? PALETTES[L.pal].n : "Black & white"} · ${SHELF_VARIANTS[L.variant]}</b></button>`).join("")}</div>`);
   SHELF_LOOKS = looks;
@@ -18814,9 +18914,10 @@ $("#cardBody").addEventListener("click", e => {
 let SF = null;
 function openShelfForm(block, look){
   const last = LS.get("shelfRows", null);
-  SF = block ? {block, rows:JSON.parse(JSON.stringify(block.items)), o:{variant:block.variant || 0, colour:!!block.colour, pal:block.pal || 0, cols:block.cols || 2, showSave:block.showSave !== false, dec:block.dec !== false, upper:block.upper !== false, strike:!!block.strike, font:block.font || "Roboto"}}
+  SF = block ? {block, rows:JSON.parse(JSON.stringify(block.items)), o:{variant:block.variant || 0, colour:!!block.colour, pal:block.pal || 0, cols:block.cols || 2, showSave:block.showSave !== false, dec:block.dec !== false, upper:block.upper !== false, strike:!!block.strike, font:block.font || "Roboto", fz:Object.assign({}, block.fz || {})}}
     : {block:null, rows:last && last.length ? last : [{brand:"Lalitha Naturals", name:"", size:"", mrp:"", sp:""}, {brand:"Lalitha Naturals", name:"", size:"", mrp:"", sp:""}],
-      o:Object.assign({variant:0, colour:false, pal:0, cols:S.work === "thermal" ? 1 : 2, showSave:true, dec:true, upper:true, strike:false, font:"Roboto"}, look || {})};
+      o:Object.assign({variant:0, colour:false, pal:0, cols:S.work === "thermal" ? 1 : 2, showSave:true, dec:true, upper:true, strike:false, font:"Roboto", fz:{}}, look || {})};
+  if (!SF.o.fz) SF.o.fz = {};
   renderShelfForm(); $("#storeModal").hidden = false;
 }
 function shelfPreview(){
@@ -18837,9 +18938,10 @@ function renderShelfForm(){
     <div class="ptprev" id="shPrev">${shelfPreview()}</div>
     <div class="shtable"><div class="shrow shhead"><span>#</span><span>Brand</span><span>Item name</span><span>Size</span><span>MRP ₹</span><span>Selling price ₹</span><span></span><span></span></div>${SF.rows.map(row).join("")}</div>
     <div class="row" style="gap:8px;margin:10px 0 14px;flex-wrap:wrap"><button class="btn primary" data-shact="add">+ Add item</button><button class="btn" data-shact="clear">Clear all</button></div>
+    <div class="f"><span>Style · tap one</span><div class="shstyles">${shelfStyleTiles()}</div></div>
+    <div class="f"><span>Text sizes · make any text bigger or smaller</span><div class="shfz">${SHELF_PARTS.map(([k, n]) => `<div class="shfz1"><span>${n}</span><button class="btn" data-shfz="${k}" data-d="-1" title="Smaller">A−</button><b>${Math.round(fzOf(o, k) * 100)}%</b><button class="btn" data-shfz="${k}" data-d="1" title="Bigger">A+</button></div>`).join("")}<button class="btn" data-shfz="reset">Reset sizes</button></div></div>
     <div class="field" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px 14px">
       <div class="f"><span>Colour</span><div class="seg"><button data-shcol="0" aria-pressed="${!o.colour}">Black &amp; white</button><button data-shcol="1" aria-pressed="${!!o.colour}">Colour</button></div></div>
-      <label class="f"><span>Style</span><select class="fin" data-sho="variant">${SHELF_VARIANTS.map((n, i) => `<option value="${i}" ${o.variant === i ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       ${o.colour ? `<label class="f"><span>Colours</span><select class="fin" data-sho="pal">${PALETTES.slice(0, 12).map((p, i) => `<option value="${i}" ${o.pal === i ? "selected" : ""}>${p.n}</option>`).join("")}</select></label>` : ""}
       <label class="f"><span>Tags in a row</span><select class="fin" data-sho="cols">${[1, 2, 3].map(n => `<option value="${n}" ${o.cols === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
       <label class="f"><span>Font</span><select class="fin" data-sho="font">${FONTS.map(([f2]) => `<option ${o.font === f2 ? "selected" : ""}>${f2}</option>`).join("")}</select></label>
@@ -18848,6 +18950,12 @@ function renderShelfForm(){
       <label class="check"><input type="checkbox" data-shb="upper" ${o.upper ? "checked" : ""}> CAPITAL letters</label>
       <label class="check"><input type="checkbox" data-shb="strike" ${o.strike ? "checked" : ""}> Cross out MRP</label></div>
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" data-shact="cancel">Cancel</button><button class="btn primary" data-shact="make">${SF.block ? "Update tags" : `Make tags on ${S.work === "thermal" ? "the thermal slip" : "A4"}`}</button></div>`;
+}
+function shelfStyleTiles(){
+  const th = S.work === "thermal", W = th ? 72 : 93, K = 150 / W, u = v => r2(v * K) + "px";
+  const it = SF.rows.find(r => r.name || r.sp) || {brand:"Brand name", name:"Item name", size:"500 g", mrp:"500", sp:"300"};
+  const one = Object.assign({mrp:it.mrp || "500", sp:it.sp || "300"}, it.name || it.sp ? it : {brand:"Brand name", name:"Item name", size:"500 g"});
+  return SHELF_VARIANTS.map((n, v) => `<button class="shst" data-shv="${v}" aria-pressed="${SF.o.variant === v}"><div style="width:150px;pointer-events:none">${shelfHTML(Object.assign({}, SF.o, {variant:v, items:[one], cols:1, size:th ? 6.5 : 8.5, gap:0}), u, false, "")}</div><span>${n}</span></button>`).join("");
 }
 function shelfUpdPrev(){ const p = $("#shPrev"); if (p) p.innerHTML = shelfPreview(); }
 function makeShelf(){
@@ -18869,6 +18977,10 @@ $("#storeBody").addEventListener("click", e => {
   if (!SF) return;
   const a = e.target.closest("[data-shact]"), col = e.target.closest("[data-shcol]");
   if (col){ SF.o.colour = col.dataset.shcol === "1"; renderShelfForm(); return; }
+  const sv = e.target.closest("[data-shv]"); if (sv){ const sc = $("#storeBody").scrollTop; SF.o.variant = +sv.dataset.shv; renderShelfForm(); $("#storeBody").scrollTop = sc; return; }
+  const fz = e.target.closest("[data-shfz]"); if (fz){ const sc = $("#storeBody").scrollTop, k = fz.dataset.shfz;
+    if (k === "reset") SF.o.fz = {}; else SF.o.fz[k] = r2(Math.max(0.4, Math.min(3, fzOf(SF.o, k) + (+fz.dataset.d) * 0.1)));
+    renderShelfForm(); $("#storeBody").scrollTop = sc; return; }
   if (!a) return; const k = a.dataset.shact, ri = a.closest("[data-ri]") ? +a.closest("[data-ri]").dataset.ri : -1;
   if (k === "add"){ const last = SF.rows[SF.rows.length - 1] || {}; SF.rows.push({brand:last.brand || "", name:"", size:"", mrp:"", sp:""}); renderShelfForm(); $$("#storeBody .shrow:not(.shhead)").pop()?.querySelector('[data-sh="name"]')?.focus(); }
   if (k === "dup"){ SF.rows.splice(ri + 1, 0, JSON.parse(JSON.stringify(SF.rows[ri]))); renderShelfForm(); }
@@ -18885,9 +18997,29 @@ $("#storeBody").addEventListener("input", e => {
   else if (t.dataset.shb) SF.o[t.dataset.shb] = t.checked;
   clearTimeout(SF.t); SF.t = setTimeout(shelfUpdPrev, 120);
 });
+(function(){ const st = document.createElement("style"); st.textContent = `
+.shstyles{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px}
+.shst{flex:none;border:2px solid var(--line);border-radius:10px;background:#fff;padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--ink)}
+.shst[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.shfz{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center}
+.shfz1{display:flex;align-items:center;gap:4px;font-size:13px}.shfz1>span{min-width:96px}.shfz1 b{min-width:42px;text-align:center;font-size:12px}
+.shfz .btn{padding:3px 9px;min-height:30px}`; document.head.appendChild(st); })();
 $("#storeBody").addEventListener("keydown", e => { if (SF && e.key === "Enter" && e.target.dataset.sh === "sp"){ e.preventDefault(); $('#storeBody [data-shact="add"]').click(); } });
 STORE_PRINTS.push({id:"shelf", icon:"🏷️", n:"Shelf price tags", d:"SP big, “You save ₹… (…% OFF)”, MRP, brand, item and size. Many tags on one A4 page, black & white or colour"});
 $("#storeClose").addEventListener("click", () => { SF = null; });
+
+/* new label layouts: shown first in Choose design for labels */
+const _ALL_LABEL_NEW = ALL_LABEL;
+ALL_LABEL = function(){
+  const base = _ALL_LABEL_NEW(), P5 = getProducts(), out = [];
+  L_ARCH_NEW.forEach((an, ai) => L_PURPOSES.forEach((Pp, pu) => { const r = prng(9001 + ai * 131 + pu * 17);
+    const g = {pu, arch:0, archN:an, frame:0, fp:Math.floor(r() * FPAIRS.length), tag:Math.floor(r() * L_TAGSTYLE.length), up:r() < 0.4, div:Math.floor(r() * 4), pi:Math.floor(r() * P5.length)};
+    const Pn = P5[g.pi];
+    out.push({gen:g, n:Pp.n, cat:Pp.cat, theme:an, sub2:`New · ${FPAIRS[g.fp][0]}`, prod:Pn.short, kw:`new ${Pp.n} ${an} ${FPAIRS[g.fp][0]} ${Pn.name} ${Pn.cat}`.toLowerCase()}); }));
+  // mix so each screen shows different layouts
+  out.sort((a, b) => a.gen.pu - b.gen.pu);
+  return out.concat(base);
+};
 
 /* ================= simple shop experience =================
    home screen · one product list · staff / owner mode · "More" menus · short toolbars · favourites
@@ -19706,7 +19838,7 @@ buildThermal = async function(c, qty){
 function updCutSw(){ const sw = $("#cutEachSw"); if (!sw) return; const mb = isFlow() && kindOf(cfg()) === "thermal" ? multiBlock() : null;
   sw.hidden = !mb; if (mb){ $("#cutEach").checked = cutEachOn(); sw.querySelector("input").title = `${mb.items.length} items`; } }
 const _renderThermalCut = renderThermal;
-renderThermal = function(){ const r = _renderThermalCut.apply(this, arguments); try{ updCutSw(); }catch(e){} return r; };
+renderThermal = function(){ const r = _renderThermalCut.apply(this, arguments); try{ updCutSw(); const gb = $("#gapBtn"); if (gb) gb.hidden = kindOf(cfg()) !== "thermal"; }catch(e){} return r; };
 
 /* ---------- labels: fill from a product, or print labels for many products ---------- */
 function fillLabel(p){
@@ -19751,6 +19883,36 @@ $("#aProdBtn").onclick = openLabelProducts;
 .cutsw .sw{width:38px;height:22px;border-radius:11px;background:#c9ccc6;position:relative;flex:none;transition:.15s}.cutsw .sw::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
 .cutsw input:checked+.sw{background:var(--accent)}.cutsw input:checked+.sw::after{left:19px}
 @media (max-width:700px){.cutsw{width:100%;justify-content:center;padding:4px}}`; document.head.appendChild(st); })();
+
+/* ---------- thermal: fix empty paper above the design ----------
+   When the paper size chosen in the print window is longer than our page, the computer centres the page on it,
+   so (paper − page) ÷ 2 of empty paper comes out above the design. Measuring that gap tells us the real paper size. */
+const STD_PAPER = [200, 210, 250, 297, 3276];
+function fixTopGap(gap){
+  const c = cfg(), page = Math.max(paperLenOf(c) || 0, 81), real = page + 2 * gap;
+  const near = STD_PAPER.reduce((a, p) => Math.abs(p - real) < Math.abs(a - real) ? p : a, STD_PAPER[0]);
+  const PLn = Math.abs(near - real) <= 25 ? near : Math.round(real);
+  c.paperLen = PLn; c.mt = Math.min(c.mt || 0, 2); save();
+  toast(`Paper size set to 80 × ${PLn} mm. In the print window pick the same paper size, then print again.`);
+  return PLn;
+}
+const _renderPreviewGap = renderPreview;
+renderPreview = async function(){
+  await _renderPreviewGap.apply(this, arguments);
+  const c = cfg(), s = $('#pvSet [data-c="paperLen"]');
+  if (s && !s.querySelector(`option[value="${paperLenOf(c)}"]`)) s.insertAdjacentHTML("beforeend", `<option value="${paperLenOf(c)}" selected>80 × ${paperLenOf(c)} mm</option>`);
+  $("#pvSet .pvsum")?.insertAdjacentHTML("afterend", `<div class="gapfix"><b>Empty paper above the design?</b><span>Measure the blank part above the design on your printed slip and type it here. I'll set the matching paper size.</span>
+    <div class="row" style="gap:6px;margin-top:6px"><input class="fin" id="gapMM" type="number" min="1" max="200" step="1" placeholder="e.g. 40" style="width:90px"><span style="align-self:center">mm</span><button class="btn primary" id="gapFix">Fix it</button></div></div>`);
+  $("#gapFix").onclick = () => { const g = parseFloat($("#gapMM").value); if (!(g > 0)){ toast("Type how many mm of empty paper came above the design"); $("#gapMM").focus(); return; } fixTopGap(g); renderPreview(); };
+  $("#gapMM").onkeydown = e => { if (e.key === "Enter") $("#gapFix").click(); };
+};
+(function(){
+  const g = $("#thermalView .printgrp"); if (!g) return;
+  g.insertAdjacentHTML("beforeend", `<button class="btn" id="gapBtn" title="Empty paper above the design? Fix it here">↕ Top space</button>`);
+  $("#gapBtn").onclick = async () => { if (kindOf(cfg()) !== "thermal") return; await openPreview(); setTimeout(() => $("#gapMM")?.focus(), 50); };
+  const st = document.createElement("style"); st.textContent = `.gapfix{background:#fff7e0;border:1px solid #f1d58a;border-radius:10px;padding:10px 12px;margin:6px 0 10px;display:flex;flex-direction:column;gap:2px;font-size:13px}.gapfix span{color:var(--muted);font-size:12px}`;
+  document.head.appendChild(st);
+})();
 
 
 /* ---------------- boot ---------------- */
