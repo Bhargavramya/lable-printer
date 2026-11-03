@@ -24349,16 +24349,32 @@ function getAppHTML(){ const site = appSite(), apps = [["android", "Android phon
     ${apps.map(([k, n, f, btn, help]) => `<div class="setcard gacard"><div class="gatxt"><b>${{android:"🤖", windows:"🪟", mac:"🍎"}[k]} ${n}</b><span class="hint">${help}</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><a class="btn primary" href="${esc(appDl(f))}" target="_blank" rel="noopener">${btn}</a><button class="btn" data-ga="copy" data-u="${esc(appDl(f))}">Copy download link</button></div></div>${qrBox(appDl(f))}</div>`).join("")}
     <details class="gamore"><summary>Where the app files come from</summary><p class="hint">GitHub builds the Android, Windows and Mac apps every time you upload a new index.html, and puts them on the repo's Releases page. Installed apps open the latest version and get updates from Settings → App &amp; updates.</p><label class="f"><span>GitHub repository</span><input class="fin" id="gaRepo" value="${esc(appRepo())}"></label></details></section>
   <section class="setsec"><h3>Share designs</h3>
-    <div class="setcard"><b>🔗 Share this design as a link</b><span class="hint">Anyone who opens the link gets a copy of the design in their Label Print, ready to edit or print. Works on WhatsApp too, and shows a QR code to scan.</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-ga="share">Share this design…</button></div></div></section>`; }
+    <div class="setcard"><b>🔗 Share this design</b><span class="hint">A link opens a copy of the design in Label Print, ready to edit or print (with a QR code to scan). A PDF is ready to print anywhere. Both go straight to WhatsApp from a phone.</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-ga="share">Share as a link…</button><button class="btn" data-ga="pdf">Share as a PDF</button></div></div></section>`; }
 document.addEventListener("click", async e => { const b = e.target.closest("[data-ga]"); if (!b) return; const k = b.dataset.ga;
   if (k === "copy"){ try{ await navigator.clipboard.writeText(b.dataset.u); toast("Link copied"); }catch(x){ prompt("Copy this link", b.dataset.u); } }
   if (k === "open") window.open(b.dataset.u, "_blank", "noopener");
   if (k === "install" && BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(x){} BIP = null; renderSettings(); }
-  if (k === "share"){ $("#setModal").hidden = true; tbSaveCur(); openShare(); } });
+  if (k === "share"){ $("#setModal").hidden = true; tbSaveCur(); openShare(); }
+  if (k === "pdf"){ $("#setModal").hidden = true; sharePDF(); } });
 document.addEventListener("change", e => { if (e.target.id === "gaRepo"){ S.prefs.appRepo = e.target.value.trim(); save(); renderSettings(); } });
 // share button on the tab bar and the BarTender main toolbar
 if (typeof BT_BARS !== "undefined"){ try{ BT_BARS[0][1].splice(5, 0, ["share", "Share this design as a link", "share"]); BTI.share = BI('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>'); const tb = $("#btTb .btbar"); if (tb && !tb.querySelector('[data-a="share"]')){ const ref = tb.querySelector('[data-a="pagesetup"]'); ref && ref.insertAdjacentHTML("beforebegin", `<button class="btb" data-a="share" title="Share this design as a link" aria-label="Share this design as a link">${BTI.share}</button>`); } }catch(e){} }
 if (typeof BTA !== "undefined"){ BTA.getapp = () => { SET_TAB = "get"; openSettings(); }; try{ BT_MENU[0][1].splice(BT_MENU[0][1].findIndex(x => x[1] === "share") + 1, 0, ["Get the app (Android, Windows, Mac)…", "getapp"]); BT_MENU[8][1].splice(1, 0, ["Get the app on other devices…", "getapp"]); }catch(e){} }
+
+/* ---------- 5c. share as PDF (phones: straight into WhatsApp / email; computers: saves the PDF) ---------- */
+async function pdfBlob(){ const J = window.jspdf && window.jspdf.jsPDF; if (!J){ toast("PDF tools didn't load. Use Print and pick “Save as PDF”."); return null; }
+  const real = J.API.save; let out = null; J.API.save = function(name){ out = {blob:this.output("blob"), name:name || (fileName ? fileName(".pdf") : "design.pdf")}; return this; };
+  const tt = toast; toast = () => {}; try{ await savePDF(); } catch(e){ console.warn(e); } finally { J.API.save = real; toast = tt; } return out; }
+async function sharePDF(){ tbSaveCur(); const r = await pdfBlob(); $("#busy") && ($("#busy").hidden = true); if (!r){ toast("Couldn't make the PDF"); return; }
+  const file = new File([r.blob], /\.pdf$/i.test(r.name) ? r.name : r.name + ".pdf", {type:"application/pdf"});
+  try{ if (navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:curName(), text:curName()}); return; } }catch(e){ if (e && e.name === "AbortError") return; }
+  download(file.name, file); toast("PDF saved · attach it on WhatsApp, email or Drive"); }
+const _openShareV45 = openShare; openShare = function(){ const r = _openShareV45.apply(this, arguments); try{ const B = $("#shareBody"); if (B && !B.querySelector("#shPdfShare")){ const first = B.querySelector(".sharesec");
+  const sec = `<section class="sharesec"><h3>Share as a PDF</h3><p class="hint">A ready-to-print PDF of this design. On a phone it opens the share menu (WhatsApp, Gmail, Drive); on a computer it saves the file.</p><div class="row"><button class="btn primary" id="shPdfShare">Share PDF</button><button class="btn" id="shPdfSave2">Save PDF</button></div></section>`;
+  const old = [...B.querySelectorAll(".sharesec")].find(s => /^PDF$/i.test((s.querySelector("h3")?.textContent || "").trim())); if (old) old.remove();
+  first ? first.insertAdjacentHTML("afterend", sec) : B.insertAdjacentHTML("beforeend", sec);
+  B.querySelector("#shPdfShare").onclick = () => sharePDF(); B.querySelector("#shPdfSave2").onclick = async () => { const x = await pdfBlob(); $("#busy") && ($("#busy").hidden = true); if (x) download(x.name, x.blob); }; } }catch(e){ console.warn(e); } return r; };
+if (typeof BTA !== "undefined"){ BTA.sharepdf = () => sharePDF(); try{ BT_MENU[0][1].splice(BT_MENU[0][1].findIndex(x => x[1] === "share") + 1, 0, ["Share as PDF…", "sharepdf"]); }catch(e){} }
 
 /* ---------- 6. start ---------- */
 (function(){ try{ tbInit(); tbMount(); }catch(e){ console.error("tabs", e); } })();
