@@ -23359,7 +23359,7 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-fx2=
 document.addEventListener("click", e => { if (e.target.closest("[data-fx2]")) $$(".moremenu").forEach(m => m.hidden = true); });
 
 /* ---------- version number ---------- */
-const APP_VERSION = "v46";
+const APP_VERSION = "v47";
 (function(){ const b = $("header.top .brand small") || $(".brand small"); if (b && !b.querySelector(".appver")) b.insertAdjacentHTML("beforeend", ` <span class="appver">· ${APP_VERSION}</span>`); })();
 const _homeHTMLv = homeHTML; homeHTML = function(){ return _homeHTMLv.apply(this, arguments).replace("<small>" + esc(shopInfo().name) + "</small>", `<small>${esc(shopInfo().name)} · ${APP_VERSION}</small>`); };
 
@@ -24484,6 +24484,164 @@ body.lpsimple .bttabs button[aria-selected="true"]{background:transparent;color:
 body.lpsimple .btwin .fin{height:44px;border-radius:12px;border:1px solid #d9d5e1;font:15px Poppins,system-ui,sans-serif;padding:0 12px}
 body.lpsimple .pfs{border:1px solid #efedf3;border-radius:14px;padding:12px 14px}body.lpsimple .pfs legend{color:#1d1b22;font-size:14px}
 body.lpsimple .pqsum{background:#f3efff;border-radius:12px;padding:10px 12px}`; document.head.appendChild(st); })();
+
+</script>
+<script>
+/* ================= v47: the new Simple view (from the approved mockups) — Home, a clean editor and the Print window =================
+   Used on computers and tablets when "Simple" is chosen on the top-right switch (the default). Phones keep the calm compact layout. */
+const lpNew = () => !document.body.classList.contains("classic") && innerWidth > 760;
+const NI = (d, s) => `<svg width="${s || 20}" height="${s || 20}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const NIC = {
+  tag:'<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/>', search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.8 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3.1 14H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 10 3.1V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 20.9 10H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>', redo:'<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>', menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+  print:'<path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7"/><path d="M6 18H4v-6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6h-2"/>', check:'<path d="M20 6 9 17l-5-5"/>', home:'<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>',
+  text:'<path d="M5 6V4h14v2M12 4v16M9 20h6"/>', barcode:'<path d="M4 5v14M7 5v14M10 5v14M12 5v14M15 5v14M18 5v14M20 5v14"/>', qr:'<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v1M14 20h1M18 20h3v-3"/>',
+  pic:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>', date:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>', shape:'<rect x="3" y="11" width="9" height="9" rx="1"/><circle cx="16.5" cy="7.5" r="4.5"/>', share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>'};
+
+/* ---------- Home ---------- */
+function nhHTML(){
+  const recs = LS.get("recents", []).slice(0, 8), si = shopInfo();
+  const mini = r => { try{ const d = JSON.parse(r.json), c = S.settings[r.size]; if (!c) return ""; return r.kind !== "label" ? tMini(d.blocks, c, d) : miniHTML(d.els, Object.assign({}, c, d.settings || {}), 130); }catch(e){ return ""; } };
+  const kindName = r => { const c = S.settings[r.size]; return (r.kind === "label" ? "Label " + (c ? `${c.w} × ${c.h}` : "") : r.kind === "thermal" ? "Price slip " + (c ? (c.label || "80 mm") : "") : "A4 page"); };
+  const card = (k, t, d, cta, art) => `<button class="nhcard" data-nh="${k}"><div class="nhart nhart-${k}">${art}</div><b>${t}</b><span>${d}</span><em>${cta} →</em></button>`;
+  return `<div class="nhome"><header class="nhhead"><div class="nhbrand"><span class="nhlogo">${NI(NIC.tag)}</span><div><b>Label Print</b><small>${esc(si.name || "")}</small></div></div><span style="flex:1"></span>
+    <label class="nhsearch">${NI(NIC.search, 18)}<input id="nhQ" placeholder="Search your projects"></label><button class="nhicon" data-nh="settings" aria-label="Settings">${NI(NIC.gear)}</button></header>
+    <main class="nhmain"><h1>What do you want to print?</h1><div class="nhcards">
+      ${card("label", "Sticker labels", "Product labels on a roll or an A4 sticker sheet. Barcode, MRP, dates.", "Start a label", `<div class="nla"><i></i><i></i><i class="bc"></i></div><div class="nla"></div>`)}
+      ${card("thermal", "Price slip", "80 mm thermal roll. Shelf tags, rack tags, bills and offer slips.", "Start a slip", `<div class="nsl"><i></i><i></i><i></i><i class="big"></i></div>`)}
+      ${card("a4", "A4 page", "Offer boards, price lists and posters for the shop wall.", "Start a page", `<div class="na4"><i></i><i class="fill"></i><i></i></div>`)}</div>
+      <h2>Ready-made, just fill in</h2><div class="nhchips">${[["shelf", "Shelf price tags"], ["staff", "Staff names list"], ["stickers", "Barcode stickers"], ["offers", "Today's offers board"], ["pchange", "Price change list"], ["file", "Open a file…"]].map(([k, n]) => `<button data-nh="${k}">${n}</button>`).join("")}</div>
+      ${recs.length ? `<div class="nhrow"><h2>Continue where you left off</h2><button class="nhlink" data-nh="all">See all projects</button></div><div class="nhrecent">${recs.map(r => `<button class="nhrec" data-nhr="${r.id}" data-q="${esc((r.name || "").toLowerCase())}"><div class="nhthumb">${mini(r)}</div><b>${esc(r.name || "Untitled")}</b><span>${esc(kindName(r))} · ${timeAgo(r.at)}</span></button>`).join("")}</div>` : ""}
+    </main></div>`; }
+const _showHomeV47 = showHome; showHome = function(){ if (!lpNew()) return _showHomeV47.apply(this, arguments); $("#startScr").innerHTML = nhHTML(); $("#startScr").hidden = false; $("#startScr").classList.add("nhscr"); };
+document.addEventListener("click", e => { const H = e.target.closest(".nhome"); if (!H) return; const r = e.target.closest("[data-nhr]"), b = e.target.closest("[data-nh]");
+  const leave = () => { $("#startScr").hidden = true; };
+  if (r){ leave(); openRecent(r.dataset.nhr); return; } if (!b) return; const k = b.dataset.nh;
+  if (k === "settings") return openSettings();
+  if (k === "label" || k === "thermal" || k === "a4"){ leave(); const cur = tbAct(), empty = isFlow() ? !(tblocks().length || fobjs().length) : !els().length; if (cur && empty && S.work === k) return; if (cur && empty){ TBQ = true; try{ setWork(k); }finally{ TBQ = false; } tbSync(); tbRender(); } else tbNew(k); if (k === "label") setMode("advanced"); return; }
+  leave();
+  if (k === "shelf") return (S.work !== "thermal" && setWork("thermal"), setTimeout(() => openShelfForm(null), 80));
+  if (k === "staff") return BTA.c_staff(); if (k === "stickers") return barcodeStickers(); if (k === "pchange") return priceChangeList();
+  if (k === "offers") return (S.work !== "a4" && setWork("a4"), setTimeout(() => openCardPicker(null), 80));
+  if (k === "file") return openFilePicker(); if (k === "all"){ _showHomeV47(); return; } });
+document.addEventListener("input", e => { if (e.target.id !== "nhQ") return; const q = e.target.value.trim().toLowerCase(); $$(".nhrec").forEach(c => c.hidden = q && !c.dataset.q.includes(q)); });
+
+/* ---------- the editor window ---------- */
+function nhBuild(){
+  if (!lpNew() || $("#nHead")) return; document.body.classList.add("lpnew");
+  const h = document.createElement("div"); h.id = "nHead";
+  h.innerHTML = `<button class="nhlogo nhhomebtn" data-nx="home" aria-label="Home" title="Home">${NI(NIC.tag)}</button><div class="nhtabs" id="nTabsHost"></div>
+    <select class="nhsize" id="nSize" aria-label="Size"></select>
+    <span class="nhsaved" id="nSaved">${NI(NIC.check, 16)} Saved</span>
+    <button class="nhicon" data-nx="undo" aria-label="Undo" title="Undo (Ctrl+Z)">${NI(NIC.undo)}</button><button class="nhicon" data-nx="redo" aria-label="Redo" title="Redo (Ctrl+Y)">${NI(NIC.redo)}</button>
+    <button class="nhicon" data-nx="share" aria-label="Share" title="Share as a link or PDF">${NI(NIC.share)}</button>
+    <button class="nhicon" data-nx="settings" aria-label="Settings" title="Settings">${NI(NIC.gear)}</button>
+    <button class="nhicon" data-nx="menu" id="nMenuBtn" aria-label="More tools" title="More tools">${NI(NIC.menu)}</button>
+    <button class="nhprint" data-nx="print">${NI(NIC.print, 18)} Print</button>`;
+  $("#app").insertBefore(h, $("#app").firstChild);
+  const tabs = $("#lpTabs"); if (tabs) $("#nTabsHost").appendChild(tabs);
+  h.addEventListener("click", e => { const b = e.target.closest("[data-nx]"); if (!b) return; const k = b.dataset.nx;
+    if (k === "home") return showHome(); if (k === "undo") return $("#undoBtn").click(); if (k === "redo") return $("#redoBtn").click();
+    if (k === "share") return nhMenu(b, [["Share as a link…", () => { tbSaveCur(); openShare(); }], ["Share as a PDF", () => sharePDF()], ["Save PDF", () => BTA.pdf()], ["Save picture (PNG)", () => BTA.qexport()], ["Download project file", () => BTA.saveas()]]);
+    if (k === "settings") return openSettings(); if (k === "menu") return $("#lpMoreDd") ? $("#lpMoreDd").remove() : simpleMore(b);
+    if (k === "print"){ try{ if (S.fedit) fStopEdit(true); }catch(x){} return btPrintDialog(); } });
+  $("#nSize").onchange = e => { const id = e.target.value; if (id === "@setup") return (nhSizes(), btPageSetup(isFlow() ? undefined : "stock")); if (id === "@new") return (nhSizes(), btNewWizard());
+    const t = $(`#sizeTabs [data-size="${id}"]`); t ? t.click() : (S.size = id, renderAll()); };
+  nhLeft(); nhSizes();
+}
+function nhSizes(){ const s = $("#nSize"); if (!s) return; const L = sizesOf(S.work);
+  s.innerHTML = L.map(([id, v]) => `<option value="${id}" ${id === S.size ? "selected" : ""}>${esc(v.label || id)}${kindOf(v) === "label" ? ` · ${v.cols} across` : ""}</option>`).join("") + `<option disabled>──────</option><option value="@setup">${S.work === "label" ? "Label size & sheet stock…" : "Page setup…"}</option>${S.work === "label" ? `<option value="@new">New label size…</option>` : ""}`; }
+function nhMenu(anchor, items){ $("#lpMoreDd")?.remove(); const d = document.createElement("div"); d.id = "lpMoreDd"; d.className = "lpmoredd"; d.innerHTML = items.map(([n], i) => `<button data-i="${i}">${esc(n)}</button>`).join("");
+  const r = anchor.getBoundingClientRect(); d.style.top = r.bottom + 6 + "px"; if (r.left > innerWidth / 2) d.style.right = Math.max(8, innerWidth - r.right) + "px"; else d.style.left = r.left + "px"; document.body.appendChild(d);
+  const off = ev => { if (!ev.target.closest("#lpMoreDd") && ev.target !== anchor && !anchor.contains(ev.target)){ d.remove(); document.removeEventListener("pointerdown", off, true); } }; document.addEventListener("pointerdown", off, true);
+  d.onclick = ev => { const b = ev.target.closest("[data-i]"); if (!b) return; d.remove(); items[+b.dataset.i][1](); }; }
+// left "Add" panel for sticker labels (the same 7 buttons as the mockup)
+const NADD = [["text", "Text", "Name, weight, words", () => BTA.c_text()], ["barcode", "Barcode", "EAN-13, Code 128", () => BTA.c_barcode()], ["qr", "QR code", "WhatsApp, UPI, link", () => BTA.c_qr()],
+  ["pic", "Picture or logo", "Your shop logo", "@pic"], ["date", "Date and batch", "Fills in by itself", "@date"], ["box", "From my products", "Name, MRP, price", "@prod"], ["shape", "Line or box", "Borders and shapes", "@shape"]];
+const NSUB = {pic:[["Shop logo", () => BTA.c_logo()], ["Picture from a file…", () => BTA.c_picture()]],
+  date:[["Today's date (Mfg)", () => BTA.c_today()], ["Best before (today + 6 months)", () => BTA.c_best()], ["Mfg date — ask when printing", () => BTA.c_mfgask()], ["Best before from the Mfg date", () => BTA.c_bestask()], ["Batch number that counts up", () => BTA.c_serial()], ["Batch number — ask when printing", () => BTA.c_batchask()], ["Expiry block (Mfg + Best before)", () => BTA.c_expiry()], ["Label 1 of N", () => BTA.c_copyno()]],
+  prod:[["Product name", () => BTA.c_pname()], ["Price", () => BTA.c_price()], ["MRP", () => BTA.c_mrp()], ["Net weight — ask when printing", () => BTA.c_weightask()], ["Fill the whole label from a product…", () => $("#aProdBtn")?.click()]],
+  shape:[["Line", () => BTA.c_line()], ["Box / border", () => BTA.c_rect()], ["Circle", () => BTA.c_ellipse()]]};
+function nhLeft(){ const side = document.querySelector(".main.adv-only > aside.side:not(.right)"); if (!side || side.querySelector(".nadd")) return; side.classList.add("nside");
+  side.insertAdjacentHTML("afterbegin", `<div class="nadd"><h2>Add</h2>${NADD.map(([ic, n, d], i) => `<button class="naddb" data-na="${i}"><span>${NI(NIC[ic])}</span><b>${n}</b><em>${d}</em></button>`).join("")}<div style="flex:1"></div><button class="ntpl" data-na="tpl">Choose a template…</button><button class="ntpl" data-na="classic">Show all the old buttons</button></div>`);
+  side.addEventListener("click", e => { const b = e.target.closest("[data-na]"); if (!b) return; const k = b.dataset.na;
+    if (k === "tpl") return openGallery(); if (k === "classic"){ side.classList.toggle("nside-all"); b.textContent = side.classList.contains("nside-all") ? "Hide the old buttons" : "Show all the old buttons"; return; }
+    const it = NADD[+k], fn = it[3]; if (typeof fn === "function") return fn(); nhMenu(b, NSUB[fn.slice(1)]); }); }
+// "Fill in automatically" on the right when one text is selected (sticker labels)
+const NFILL = [["Today's date", () => [Object.assign(dsNew("text"), {v:"Mfg: "}), Object.assign(dsNew("clock"), {fmt:"DD/MM/YYYY"})]], ["Best before", () => [Object.assign(dsNew("text"), {v:"Best before: "}), Object.assign(dsNew("clock"), {fmt:"DD/MM/YYYY", off:6, ou:"m"})]],
+  ["Batch number", () => [Object.assign(dsNew("text"), {v:"Batch: "}), Object.assign(dsNew("serial"), {start:"LN0001"})]], ["Ask when printing", el => [Object.assign(dsNew("prompt"), {name:(el.text || "Value").replace(/[:：].*$/, "").trim().slice(0, 24) || "Value", ctl:"text", def:el.text || ""})]],
+  ["Product price", () => [Object.assign(dsNew("text"), {v:"₹"}), Object.assign(dsNew("field"), {f:"price"})]], ["Product name", () => [Object.assign(dsNew("field"), {f:"name"})]]];
+const _renderPropsV47 = renderProps; renderProps = function(){ const r = _renderPropsV47.apply(this, arguments); try{ if (!document.body.classList.contains("lpnew")) return r; const P = $("#props"), el = btSel(); if (!P || !el || el.type !== "text" || P.querySelector(".nfill")) return r;
+  const on = el.ds && el.ds.length; const first = P.querySelector("section.sec");
+  const html = `<section class="sec nfill"><b>Fill in automatically</b><span>${on ? `Now: <b>${esc(dsValue(el) || "")}</b>` : "The text changes on every print. No retyping."}</span><div>${NFILL.map(([n], i) => `<button data-nf="${i}">${n}</button>`).join("")}</div>${on ? `<div><button data-nf="edit" class="nfe">Change…</button><button data-nf="off" class="nfe">Stop filling in</button></div>` : ""}</section>`;
+  first ? first.insertAdjacentHTML("afterend", html) : P.insertAdjacentHTML("afterbegin", html); }catch(e){ console.warn(e); } return r; };
+document.addEventListener("click", e => { const b = e.target.closest(".nfill [data-nf]"); if (!b) return; const el = btSel(); if (!el) return; const k = b.dataset.nf;
+  if (k === "edit") return btProps(el, "ds"); snapshot(); if (k === "off"){ el.text = dsValue(el) || el.text; delete el.ds; } else { el.ds = NFILL[+k][1](el); el.text = dsValue(el) || el.text; } renderAll(); save(); });
+// keep the size list, the Saved mark and the label mode in step
+setInterval(() => { if (!document.body.classList.contains("lpnew")) return; const s = $("#nSize"); if (s && (s.dataset.k !== S.work + S.size + Object.keys(S.settings).length)){ s.dataset.k = S.work + S.size + Object.keys(S.settings).length; nhSizes(); }
+  const sv = $("#lpSaved"), n = $("#nSaved"); if (sv && n){ const busy = sv.classList.contains("busy"); n.classList.toggle("busy", busy); n.lastChild.textContent = busy ? " Saving…" : " Saved"; }
+  if (S.work === "label" && S.mode === "simple" && !S.prefs.staffMode && !document.body.classList.contains("btstation")) setMode("advanced"); }, 600);
+window.addEventListener("resize", () => { if (innerWidth <= 760 && document.body.classList.contains("lpnew")) location.reload(); });
+(function(){ try{ nhBuild(); if (lpNew()){ setTimeout(() => { if ($("#startScr") && !$("#startScr").hidden && !$("#startScr").classList.contains("nhscr")) showHome(); }, 900); } }catch(e){ console.error("simple view", e); } })();
+
+(function(){ const st = document.createElement("style"); st.textContent = `
+/* Home */
+#startScr.nhscr{padding:0!important;background:#f6f5f8!important;display:block!important;overflow:auto}
+#startScr.nhscr[hidden]{display:none!important}
+.nhome{position:fixed;inset:0;overflow:auto;z-index:1;background:#f6f5f8;font-family:Poppins,system-ui,sans-serif;color:#1d1b22}
+.nhhead{display:flex;align-items:center;gap:16px;padding:14px 200px 14px 32px;background:#fff;border-bottom:1px solid #e7e4ec;flex-wrap:wrap}
+.nhbrand{display:flex;align-items:center;gap:10px}.nhbrand b{display:block;font-size:17px;font-weight:600}.nhbrand small{display:block;font-size:12px;color:#6b6676}
+.nhlogo{width:38px;height:38px;border-radius:10px;background:#5b21b6;color:#fff;display:grid;place-items:center;border:0;flex:none}
+.nhsearch{display:flex;align-items:center;gap:8px;background:#f1eff5;border-radius:12px;padding:0 14px;height:44px;flex:0 1 360px;color:#6b6676}.nhsearch input{border:0;background:transparent;font:inherit;font-size:14px;outline:none;flex:1;min-width:0;color:#1d1b22}
+.nhicon{width:44px;height:44px;border-radius:12px;border:1px solid #e7e4ec;background:#fff;display:grid;place-items:center;cursor:pointer;color:#3b3744;flex:none}.nhicon:hover{background:#f6f5f8}
+.nhmain{max-width:1160px;margin:0 auto;padding:44px 32px 56px;display:flex;flex-direction:column;gap:18px}
+.nhmain h1{margin:0 0 4px;font-size:34px;font-weight:700;letter-spacing:-.01em}.nhmain h2{margin:22px 0 0;font-size:16px;font-weight:600;color:#3b3744}
+.nhcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.nhcard{background:#fff;border:1px solid #e7e4ec;border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:6px;text-align:left;cursor:pointer;font:inherit;color:inherit;transition:box-shadow .15s,border-color .15s}
+.nhcard:hover{border-color:#c9b8f5;box-shadow:0 8px 28px rgba(60,30,140,.10)}.nhcard b{font-size:20px;font-weight:600;margin-top:8px}.nhcard span{font-size:14px;color:#6b6676;line-height:1.5}.nhcard em{font-style:normal;font-size:14px;font-weight:600;color:#5b21b6;margin-top:6px}
+.nhart{height:120px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px}.nhart-label{background:#f3efff}.nhart-thermal{background:#eaf3ff;align-items:flex-end}.nhart-a4{background:#fff2e6}
+.nla{width:92px;height:48px;border-radius:8px;background:#fff;border:2px solid #c9b8f5;display:flex;flex-direction:column;justify-content:center;padding:0 10px;gap:5px;box-sizing:border-box}.nla i{display:block;height:5px;width:60%;background:#5b21b6;border-radius:3px}.nla i+i{height:4px;width:85%;background:#d8cdf7}.nla i.bc{height:10px;width:70%;background:repeating-linear-gradient(90deg,#1d1b22 0 2px,transparent 2px 4px)}
+.nsl{width:84px;height:104px;background:#fff;border:2px solid #b7d3f5;border-bottom:0;border-radius:6px 6px 0 0;display:flex;flex-direction:column;gap:6px;padding:12px 10px;box-sizing:border-box}.nsl i{display:block;height:4px;background:#cfe0f6;border-radius:3px}.nsl i:first-child{height:6px;width:70%;margin:0 auto;background:#1e5bb8}.nsl i.big{height:14px;width:60%;margin:4px auto 0;background:#1d1b22}
+.na4{width:74px;height:100px;background:#fff;border:2px solid #f5cfa8;border-radius:6px;display:flex;flex-direction:column;gap:6px;padding:10px;box-sizing:border-box}.na4 i{display:block;height:14px;background:#c2410c;border-radius:3px}.na4 i.fill{flex:1;background:#fde3c8}.na4 i:last-child{height:4px;width:70%;background:#f5cfa8}
+.nhchips{display:flex;flex-wrap:wrap;gap:10px}.nhchips button{height:44px;padding:0 18px;border-radius:22px;border:1px solid #e7e4ec;background:#fff;font:500 14px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22}.nhchips button:hover{border-color:#c9b8f5;background:#faf8ff}
+.nhrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.nhlink{border:0;background:transparent;color:#5b21b6;font:500 14px Poppins,system-ui,sans-serif;cursor:pointer;margin-top:22px}
+.nhrecent{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.nhrec{background:#fff;border:1px solid #e7e4ec;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px;text-align:left;cursor:pointer;font:inherit;color:inherit}.nhrec:hover{border-color:#c9b8f5}.nhrec[hidden]{display:none}
+.nhthumb{position:relative;height:110px;border-radius:10px;background:#f1eff5;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:6px;contain:paint}.nhthumb > *{position:relative!important;flex:none;max-width:none}
+.nhrec b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.nhrec span{font-size:12px;color:#6b6676}
+/* editor window */
+body.lpnew #app{grid-template-rows:auto minmax(0,1fr)!important}
+body.lpnew #app > header.top{display:none!important}
+body.lpnew #app > #nHead{grid-row:1}body.lpnew #app > .staffview,body.lpnew #app > .main,body.lpnew #app > #thermalView{grid-row:2;min-height:0}
+#nHead{display:flex;align-items:flex-end;gap:8px;padding:8px 196px 0 14px;background:#fff;border-bottom:1px solid #e7e4ec;font-family:Poppins,system-ui,sans-serif;min-height:60px;box-sizing:border-box}
+#nHead > .nhlogo,#nHead > .nhicon,#nHead > .nhprint,#nHead > .nhsize,#nHead > .nhsaved{align-self:center;margin-bottom:6px}
+#nHead .nhhomebtn{cursor:pointer;width:40px;height:40px}
+.nhtabs{flex:1;min-width:0;display:flex}
+#nHead .lptabs{flex:1;min-width:0;margin:0;padding:0;background:transparent;border:0;align-items:flex-end}
+#nHead .lpt{height:44px;border:1px solid transparent;border-bottom:0;border-radius:12px 12px 0 0;color:#6b6676;background:transparent;font:500 13.5px Poppins,system-ui,sans-serif}
+#nHead .lpt.on{background:#f6f5f8;border-color:#e7e4ec;color:#1d1b22;font-weight:600;box-shadow:none;margin-bottom:-1px;height:45px}
+#nHead .lpt:hover:not(.on){background:#faf9fc}
+#nHead .lptn{color:#6b6676;font-size:20px}#nHead .lpsaved,#nHead .lpshare{display:none}
+.nhsize{height:40px;border-radius:12px;border:1px solid #e7e4ec;background:#fff;font:500 13px Poppins,system-ui,sans-serif;padding:0 8px;max-width:190px;color:#1d1b22}
+.nhsaved{display:flex;align-items:center;gap:5px;font:500 13px Poppins,system-ui,sans-serif;color:#2f7a3e;padding:0 6px;white-space:nowrap}.nhsaved.busy{color:#8a8494}
+.nhprint{display:flex;align-items:center;gap:8px;height:44px;padding:0 22px;border-radius:12px;border:0;background:#5b21b6;color:#fff;font:600 15px Poppins,system-ui,sans-serif;cursor:pointer}.nhprint:hover{background:#4c1d95}
+/* left Add panel */
+body.lpnew aside.nside{width:232px!important;min-width:232px;padding:16px 12px!important;display:flex;flex-direction:column;background:#fff}
+body.lpnew aside.nside:not(.nside-all) > :not(.nadd){display:none!important}
+.nadd{display:flex;flex-direction:column;gap:4px;flex:1;font-family:Poppins,system-ui,sans-serif}.nadd h2{margin:0 0 6px 8px;font-size:12px;font-weight:600;color:#6b6676;letter-spacing:.06em;text-transform:uppercase}
+.naddb{display:grid;grid-template-columns:40px 1fr;column-gap:12px;align-items:center;min-height:52px;padding:6px 10px;border:0;border-radius:12px;background:transparent;font:inherit;text-align:left;cursor:pointer;color:#1d1b22}
+.naddb:hover{background:#f6f3ff}.naddb span{grid-row:span 2;width:38px;height:38px;border-radius:10px;background:#f3efff;color:#5b21b6;display:grid;place-items:center}.naddb b{font-size:14px;font-weight:600}.naddb em{font-style:normal;font-size:12px;color:#6b6676}
+.ntpl{height:44px;border-radius:12px;border:1px dashed #c9c4d3;background:#fff;font:500 13.5px Poppins,system-ui,sans-serif;color:#3b3744;cursor:pointer;margin-top:6px}
+aside.nside-all .nadd{flex:none;margin-bottom:12px}
+/* right panel */
+body.lpnew #props{background:#fff}
+.nfill{display:flex!important;flex-direction:column;gap:8px;background:#fffaf0!important;border:1px solid #f3dfb3!important;border-radius:14px!important;padding:14px!important;margin:8px 0!important}
+.nfill > span{font-size:12.5px;color:#6b5a33;line-height:1.5}.nfill > div{display:flex;flex-wrap:wrap;gap:6px}
+.nfill button{height:36px;padding:0 12px;border-radius:18px;border:1px solid #e9cf95;background:#fff;font:500 12.5px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22}.nfill button:hover{background:#fff3da}.nfill .nfe{border-color:#d9d5e1}
+body.lpnew #thermalView{background:#f6f5f8}
+@media (max-width:1100px){.nhcards{grid-template-columns:1fr 1fr}.nhrecent{grid-template-columns:repeat(3,minmax(0,1fr))}#nHead .nhsaved{display:none}}`; document.head.appendChild(st); })();
 
 </script>
 </body>
