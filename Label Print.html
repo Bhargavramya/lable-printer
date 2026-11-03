@@ -23359,7 +23359,7 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-fx2=
 document.addEventListener("click", e => { if (e.target.closest("[data-fx2]")) $$(".moremenu").forEach(m => m.hidden = true); });
 
 /* ---------- version number ---------- */
-const APP_VERSION = "v48";
+const APP_VERSION = "v49";
 (function(){ const b = $("header.top .brand small") || $(".brand small"); if (b && !b.querySelector(".appver")) b.insertAdjacentHTML("beforeend", ` <span class="appver">· ${APP_VERSION}</span>`); })();
 const _homeHTMLv = homeHTML; homeHTML = function(){ return _homeHTMLv.apply(this, arguments).replace("<small>" + esc(shopInfo().name) + "</small>", `<small>${esc(shopInfo().name)} · ${APP_VERSION}</small>`); };
 
@@ -24236,7 +24236,7 @@ function tbMount(){ if ($("#lpTabs")) $("#lpTabs").remove(); const bar = documen
 // keep the active tab in step with what's on screen, and show "Saved"
 let tbLastJson = "";
 const TB_T0 = Date.now(); setInterval(() => { if (!TB || Date.now() - TB_T0 < 1200) return; const before = JSON.stringify(tbAct()); tbSync(); const L = $("#lpTabs"); if (L && JSON.stringify(tbAct()) !== before) tbRender();
-  const s = $("#lpSaved"); if (s){ let j = ""; try{ j = JSON.stringify(curData()); }catch(e){} if (j !== tbLastJson){ tbLastJson = j; s.textContent = "● Saving…"; s.className = "lpsaved busy"; setTimeout(() => { try{ touchRecent(); }catch(e){} tbSync(); s.textContent = "✓ Saved on this device" + (FS.dir && FS.ok ? " + folder" : ""); s.className = "lpsaved"; fsAutoWrite(); }, 900); } } }, 1500);
+  const s = $("#lpSaved"); if (s){ let j = ""; try{ j = JSON.stringify(curData()); }catch(e){} if (j !== tbLastJson){ tbLastJson = j; s.textContent = "● Saving…"; s.className = "lpsaved lpbusy"; setTimeout(() => { try{ touchRecent(); }catch(e){} tbSync(); s.textContent = "✓ Saved on this device" + (FS.dir && FS.ok ? " + folder" : ""); s.className = "lpsaved"; fsAutoWrite(); }, 900); } } }, 1500);
 window.addEventListener("beforeunload", () => { try{ tbSaveCur(); }catch(e){} });
 if (typeof BTA !== "undefined"){ const nw = BTA.new; BTA.new = () => { tbNew(); nw(); }; BTA.newtab = () => tbNew(); BTA.closetab = () => tbClose(TB.active);
   try{ BT_MENU[0][1].splice(1, 0, ["New Tab", "newtab", "Alt+T"], ["Close Tab", "closetab", "Alt+W"]); BT_MENU[7][1].unshift(["New Tab", "newtab", "Alt+T"], ["Close Tab", "closetab", "Alt+W"], ["-"]); }catch(e){} }
@@ -24391,7 +24391,7 @@ header.top .lpt{color:rgba(255,255,255,.85)}header.top .lpt:hover{background:rgb
 .lpshare{font-size:12.5px!important;font-weight:600;padding:0 10px;margin-bottom:4px;white-space:nowrap}
 .gacard{flex-direction:row!important;gap:16px!important;align-items:center}.gatxt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.gaqr{flex:none;width:112px;height:112px;background:#fff;border:1px solid var(--line,#e3e3ea);border-radius:10px;padding:4px;box-sizing:border-box}.gaqr svg{width:100%;height:100%;display:block}a.btn{text-decoration:none;display:inline-flex;align-items:center}.gamore summary{cursor:pointer;font-weight:600;margin:8px 0}
 @media (max-width:760px){.gacard{flex-direction:column!important;align-items:stretch}.gaqr{align-self:center}}
-.lpsaved{flex:none;font:500 11.5px var(--ui,system-ui,sans-serif);opacity:.85;margin:0 4px 7px;white-space:nowrap}.lpsaved.busy{opacity:.6}
+.lpsaved{flex:none;font:500 11.5px var(--ui,system-ui,sans-serif);opacity:.85;margin:0 4px 7px;white-space:nowrap}.lpsaved.lpbusy{opacity:.6}
 header.top .lpsaved{color:#fff}#btShell .lpsaved{color:#2a6b2f;font-family:"Segoe UI",system-ui,sans-serif}
 body.simple .lptabs{display:none!important}
 .v44store h3{margin:14px 0 6px}
@@ -24584,7 +24584,7 @@ document.addEventListener("click", e => { const b = e.target.closest(".nfill [da
   if (k === "edit") return btProps(el, "ds"); snapshot(); if (k === "off"){ el.text = dsValue(el) || el.text; delete el.ds; } else { el.ds = NFILL[+k][1](el); el.text = dsValue(el) || el.text; } renderAll(); save(); });
 // keep the size list, the Saved mark and the label mode in step
 setInterval(() => { if (!document.body.classList.contains("lpnew")) return; const s = $("#nSize"); if (s && (s.dataset.k !== S.work + S.size + Object.keys(S.settings).length)){ s.dataset.k = S.work + S.size + Object.keys(S.settings).length; nhSizes(); }
-  const sv = $("#lpSaved"), n = $("#nSaved"); if (sv && n){ const busy = sv.classList.contains("busy"); n.classList.toggle("busy", busy); n.lastChild.textContent = busy ? " Saving…" : " Saved"; }
+  const sv = $("#lpSaved"), n = $("#nSaved"); if (sv && n){ const busy = sv.classList.contains("lpbusy"); n.classList.toggle("lpbusy", busy); n.lastChild.textContent = busy ? " Saving…" : " Saved"; }
   if (S.work === "label" && S.mode === "simple" && !S.prefs.staffMode && !document.body.classList.contains("btstation")) setMode("advanced"); }, 600);
 window.addEventListener("resize", () => { if (innerWidth <= 760 && document.body.classList.contains("lpnew")) location.reload(); });
 (function(){ try{ nhBuild(); if (lpNew()){ setTimeout(() => { if ($("#startScr") && !$("#startScr").hidden && !$("#startScr").classList.contains("nhscr")) showHome(); }, 900); } }catch(e){ console.error("simple view", e); } })();
@@ -24628,7 +24628,7 @@ body.lpnew #app > #nHead{grid-row:1}body.lpnew #app > .staffview,body.lpnew #app
 #nHead .lpt:hover:not(.on){background:#faf9fc}
 #nHead .lptn{color:#6b6676;font-size:20px}#nHead .lpsaved,#nHead .lpshare{display:none}
 .nhsize{height:40px;border-radius:12px;border:1px solid #e7e4ec;background:#fff;font:500 13px Poppins,system-ui,sans-serif;padding:0 8px;max-width:190px;color:#1d1b22}
-.nhsaved{display:flex;align-items:center;gap:5px;font:500 13px Poppins,system-ui,sans-serif;color:#2f7a3e;padding:0 6px;white-space:nowrap}.nhsaved.busy{color:#8a8494}
+.nhsaved{display:flex;align-items:center;gap:5px;font:500 13px Poppins,system-ui,sans-serif;color:#2f7a3e;padding:0 6px;white-space:nowrap}.nhsaved.lpbusy{color:#8a8494}
 .nhprint{display:flex;align-items:center;gap:8px;height:44px;padding:0 22px;border-radius:12px;border:0;background:#5b21b6;color:#fff;font:600 15px Poppins,system-ui,sans-serif;cursor:pointer}.nhprint:hover{background:#4c1d95}
 /* left Add panel */
 body.lpnew aside.nside{width:232px!important;min-width:232px;padding:16px 12px!important;display:flex;flex-direction:column;background:#fff}
@@ -24652,6 +24652,102 @@ body.lpnew #thermalView{background:#f6f5f8}
   const keep = showHome; showHome = function(){}; 
   setTimeout(() => { try{ window.__tbRestored = true; const t = tbAct(), recs = LS.get("recents", []); TB.list.forEach(x => { if (x.rid && !recs.some(r => r.id === x.rid)) x.rid = null; });
     if (t) tbLoad(t); $("#startScr").hidden = true; tbSync(); tbRender(); }catch(e){ console.warn("switch restore", e); } finally { showHome = keep; ov.remove(); } }, 450); })();
+
+</script>
+<script>
+/* ================= v49: a simpler, more comfortable right-hand panel, and smooth animations ================= */
+
+/* ---------- 1. simple right panel for sticker labels (Simple view) ---------- */
+const NP_COLS = ["#111111", "#c62828", "#1f6b3a", "#1e5bb8", "#b36b00", "#6d28d9", "#ffffff"];
+const npSel = () => { const ids = [S.sel].concat(S.multi || []).filter(Boolean); return els().filter(e => ids.includes(e.id)); };
+function npHTML(){
+  const L = npSel(), el = L.length === 1 ? L[0] : null, c = cfg();
+  const head = (t, del) => `<div class="nphead"><h2>${t}</h2>${del ? `<button class="npdel" data-np="del" aria-label="Delete" title="Delete">${NI('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>', 18)}</button>` : ""}</div>`;
+  const step = (k, v, unit) => `<div class="npstep"><button data-np="dec" data-k="${k}" aria-label="Smaller">−</button><span>${v}${unit}</span><button data-np="inc" data-k="${k}" aria-label="Bigger">+</button></div>`;
+  const tog = (k, lbl, on, st) => `<button class="nptog${on ? " on" : ""}" data-np="tog" data-k="${k}" aria-pressed="${!!on}" style="${st || ""}">${lbl}</button>`;
+  const seg = (k, opts, v) => `<div class="npseg">${opts.map(([a, b]) => `<button class="${String(v) === a ? "on" : ""}" data-np="set" data-k="${k}" data-v="${a}">${b}</button>`).join("")}</div>`;
+  const cols = (k, v) => `<div class="npcols">${NP_COLS.map(x => `<button class="${(v || "").toLowerCase() === x ? "on" : ""}" data-np="set" data-k="${k}" data-v="${x}" style="background:${x}" aria-label="Colour ${x}"></button>`).join("")}<label class="npcolx" title="Any colour"><input type="color" data-np="col" data-k="${k}" value="${pxHex(v || "#111111")}"></label></div>`;
+  if (!el && L.length > 1) return `<div class="npwrap">${head(L.length + " items selected", true)}<div class="npgrp"><span class="nplbl">Line them up</span><div class="npgrid4"><button data-np="bt" data-a="aL">Left</button><button data-np="bt" data-a="aCh">Centre</button><button data-np="bt" data-a="aR">Right</button><button data-np="bt" data-a="cPh">Middle of label</button><button data-np="bt" data-a="aT">Top</button><button data-np="bt" data-a="aCv">Middle</button><button data-np="bt" data-a="aB">Bottom</button><button data-np="bt" data-a="sH">Space evenly</button></div></div></div>`;
+  if (!el) return `<div class="npwrap">${head("Your label")}<div class="npcard"><b>${c.w} × ${c.h} mm</b><span>${c.cols} across · ${c.sheet ? `A4 sheet, ${c.cols * c.sheet.rows} per sheet` : "label roll"}</span><button class="npbtn" data-np="bt" data-a="pagesetup">Change size or sheet</button></div>
+    <div class="npcard"><b>Tip</b><span>Click anything on the label to change it. Use the Add buttons on the left to put more on it.</span></div></div>`;
+  const T = el.type; let h = `<div class="npwrap">${head({text:"Text", barcode:"Barcode", qr:"QR code", image:"Picture", shape:"Line or box", expiry:"Dates"}[T] || "Item", true)}`;
+  if (T === "text"){ const ds = el.ds && el.ds.length;
+    h += ds ? `<div class="npcard npauto"><b>Fills in automatically</b><span>Now prints: <b>${esc(dsValue(el) || "")}</b></span></div>` : `<label class="npgrp"><span class="nplbl">What it says</span><textarea class="npin" rows="2" data-np="text">${esc(el.text || "")}</textarea></label>`;
+    h += `<div class="npgrp"><span class="nplbl">Size</span>${step("size", r2(el.size), " pt")}</div>
+      <div class="npgrp"><span class="nplbl">Style</span><div class="npgrid4">${tog("bold", "B", el.bold, "font:700 17px Georgia,serif")}${tog("italic", "I", el.italic, "font:italic 600 17px Georgia,serif")}${tog("underline", "U", el.underline, "font:600 17px Georgia,serif;text-decoration:underline")}${tog("wob", "Aa", el.color === "#ffffff", "background:#1d1b22;color:#fff;border-color:#1d1b22")}</div>
+      ${seg("align", [["left", "Left"], ["center", "Centre"], ["right", "Right"]], el.align || "left")}</div>
+      <div class="npgrp"><span class="nplbl">Colour</span>${cols("color", el.color)}</div>`; }
+  if (T === "expiry") h += `<div class="npgrp"><span class="nplbl">Size</span>${step("size", r2(el.size), " pt")}</div><button class="npbtn" data-np="exp">Change the dates…</button>`;
+  if (T === "barcode") h += `<label class="npgrp"><span class="nplbl">Number</span><input class="npin" data-np="value" value="${esc(el.value || "")}"></label><div class="npgrp"><span class="nplbl">Type</span>${seg("format", [["EAN13", "EAN-13"], ["CODE128", "Code 128"], ["UPC", "UPC"]], el.format)}</div><div class="npgrp">${tog("showText", "Show the numbers", el.showText, "width:100%")}</div>`;
+  if (T === "qr") h += `<label class="npgrp"><span class="nplbl">What the code opens</span><textarea class="npin" rows="3" data-np="data">${esc(el.data || "")}</textarea></label><button class="npbtn" data-np="qr">QR generator (WhatsApp, UPI)…</button>`;
+  if (T === "image") h += `<button class="npbtn" data-np="bt" data-a="studio">Edit picture (brightness, crop, filters)…</button>`;
+  if (T === "shape") h += `<div class="npgrp"><span class="nplbl">Line thickness</span>${step("sw", r2(el.sw || 0.3), " mm")}</div><div class="npgrp"><span class="nplbl">Colour</span>${cols("stroke", el.stroke)}</div>`;
+  h += `<div class="npgrp"><span class="nplbl">Position</span><div class="npgrid4"><button data-np="bt" data-a="cPh">Centre</button><button data-np="bt" data-a="r90r">Turn 90°</button><button data-np="bt" data-a="front">To front</button><button data-np="bt" data-a="${el.locked ? "unlock" : "lock"}">${el.locked ? "Unlock" : "Lock"}</button></div></div>`;
+  return h + `</div>`; }
+const _renderPropsV49 = renderProps; renderProps = function(){ const r = _renderPropsV49.apply(this, arguments);
+  try{ if (!document.body.classList.contains("lpnew") || S.mode === "simple") return r; const P = $("#props"); if (!P || P.querySelector(".npwrap")) return r;
+    const fill = P.querySelector(".nfill"); const det = document.createElement("details"); det.className = "npmore"; det.open = !!S.prefs.npMore; det.innerHTML = `<summary>More options <span>font, exact size, layers, printer</span></summary>`;
+    [...P.childNodes].forEach(n => { if (n !== fill) det.appendChild(n); }); P.innerHTML = npHTML(); if (fill) P.querySelector(".npwrap").appendChild(fill); P.appendChild(det);
+    det.addEventListener("toggle", () => { S.prefs.npMore = det.open; save(); }); }catch(e){ console.warn("simple panel", e); } return r; };
+let npT = null;
+document.addEventListener("input", e => { const t = e.target.closest("#props [data-np]"); if (!t) return; const el = npSel()[0]; if (!el) return; const k = t.dataset.np;
+  if (k === "text" || k === "value" || k === "data"){ if (!npT){ snapshot(); } clearTimeout(npT); npT = setTimeout(() => { npT = null; }, 900); el[k] = t.value; renderCanvas(); save(); }
+  if (k === "col"){ el[t.dataset.k] = t.value; renderCanvas(); } });
+document.addEventListener("change", e => { const t = e.target.closest('#props [data-np="col"]'); if (t){ snapshot(); renderAll(); save(); } });
+document.addEventListener("click", e => { const b = e.target.closest("#props button[data-np]"); if (!b) return; const L = npSel(), el = L[0], k = b.dataset.np, key = b.dataset.k;
+  if (k === "del") return btKey("Delete"); if (k === "bt") return BTA[b.dataset.a] && BTA[b.dataset.a]();
+  if (k === "exp") return openExp(el); if (k === "qr") return openQr(el); if (!el) return; snapshot();
+  if (k === "inc" || k === "dec"){ const d = k === "inc" ? 1 : -1, v = +el[key] || (key === "sw" ? 0.3 : 10); el[key] = key === "sw" ? r2(Math.max(0.1, v + d * 0.1)) : r2(Math.max(3, v + d * (v < 10 ? 0.5 : 1))); }
+  if (k === "tog"){ if (key === "wob"){ const on = el.color !== "#ffffff"; el.color = on ? "#ffffff" : "#111111"; el.bg = on ? "#111111" : ""; el.bgc = el.bg; } else el[key] = !el[key]; }
+  if (k === "set") el[key] = b.dataset.v;
+  renderAll(); save(); });
+
+/* ---------- 2. smooth transitions and animations ---------- */
+(function(){ const st = document.createElement("style"); st.textContent = `
+/* simple right panel */
+.npwrap{display:flex;flex-direction:column;gap:16px;font-family:Poppins,system-ui,sans-serif;padding:4px 2px 12px}
+.nphead{display:flex;align-items:center;justify-content:space-between}.nphead h2{margin:0;font-size:17px;font-weight:600;color:#1d1b22}
+.npdel{width:40px;height:40px;border-radius:12px;border:0;background:#fdecec;color:#b42318;display:grid;place-items:center;cursor:pointer}.npdel:hover{background:#fbd5d5}
+.npgrp{display:flex;flex-direction:column;gap:8px}.nplbl{font-size:13px;font-weight:500;color:#3b3744}
+.npin{font:15px Poppins,system-ui,sans-serif;color:#1d1b22;border:1px solid #d9d5e1;border-radius:12px;padding:10px 12px;resize:vertical;width:100%;box-sizing:border-box;background:#fff}
+.npin:focus{outline:none;border-color:#5b21b6;box-shadow:0 0 0 3px #ede6ff}
+.npstep{display:flex;align-items:center;gap:8px}.npstep button{width:46px;height:46px;border-radius:12px;border:1px solid #d9d5e1;background:#fff;font:400 22px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22}.npstep span{flex:1;text-align:center;font-size:16px;font-weight:600}
+.npgrid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.npgrid4 button,.npseg button{min-height:42px;border-radius:11px;border:1px solid #d9d5e1;background:#fff;font:500 12.5px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22;padding:0 4px}
+.nptog.on,.npseg button.on{border-color:#5b21b6;background:#f3efff;color:#5b21b6}.nptog.on[style*="1d1b22"]{box-shadow:0 0 0 2px #5b21b6}
+.npseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.npcols{display:flex;flex-wrap:wrap;gap:8px}.npcols button{width:34px;height:34px;border-radius:50%;border:2px solid #e2dfe8;cursor:pointer;padding:0}.npcols button.on{box-shadow:0 0 0 3px #fff,0 0 0 5px #5b21b6}
+.npcolx{position:relative;width:34px;height:34px;border-radius:50%;background:conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);cursor:pointer;border:2px solid #e2dfe8;box-sizing:border-box}.npcolx input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.npcard{display:flex;flex-direction:column;gap:4px;border:1px solid #e7e4ec;border-radius:14px;padding:14px;background:#faf9fc}.npcard b{font-size:15px}.npcard span{font-size:13px;color:#6b6676;line-height:1.5}.npauto{background:#fffaf0;border-color:#f3dfb3}
+.npbtn{min-height:44px;border-radius:12px;border:1px solid #d9d5e1;background:#fff;font:500 13.5px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22;padding:0 12px;margin-top:4px}
+.npgrid4 button:hover,.npseg button:hover,.npstep button:hover,.npbtn:hover{border-color:#5b21b6}
+.npmore{margin-top:8px;border-top:1px solid #efedf3;padding-top:10px}.npmore > summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;font:600 14px Poppins,system-ui,sans-serif;color:#3b3744;padding:0 4px;border-radius:12px}
+.npmore > summary::-webkit-details-marker{display:none}.npmore > summary::before{content:"▸";transition:transform .2s ease;color:#5b21b6}.npmore[open] > summary::before{transform:rotate(90deg)}.npmore > summary span{font-weight:400;font-size:12px;color:#8a8494}.npmore > summary:hover{background:#f6f5f8}
+.npmore[open] > *:not(summary){animation:lpFadeUp .22s ease both}
+/* animations */
+@keyframes lpFadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes lpFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes lpPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes lpDrop{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes lpSlideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+button,.btn,.lpt,.nhcard,.nhrec,.naddb,.nhchips button,.npgrid4 button,.npseg button,.npstep button,.nptog,.npbtn,.npcols button,.gcard,.ctile,.ctxt,.cbig,.crail button,.layer,.stki,.nwc,.setnav button{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .2s ease,transform .18s ease,opacity .18s ease}
+.nhcard:hover,.nhrec:hover,.gcard:hover{transform:translateY(-3px)}
+.nhcard:active,.nhrec:active,.naddb:active,.nhprint:active,.btn:active,.btbtn:active,.npgrid4 button:active,.npstep button:active,.nhchips button:active{transform:scale(.97)}
+.naddb:hover span{transform:scale(1.06)}.naddb span{transition:transform .2s ease,background-color .2s}
+.btmodal{animation:lpFadeIn .18s ease both}.btmodal .btwin{animation:lpPop .24s cubic-bezier(.2,.8,.2,1) both}
+.modal:not([hidden]){animation:lpFadeIn .18s ease both}.modal:not([hidden]) > .dialog{animation:lpPop .24s cubic-bezier(.2,.8,.2,1) both}
+.lpmoredd,.btdrop,.btsubm{animation:lpDrop .16s ease-out both;transform-origin:top}
+.nhome .nhmain > *{animation:lpFadeUp .35s ease both}.nhome .nhmain > *:nth-child(2){animation-delay:.04s}.nhome .nhmain > *:nth-child(3){animation-delay:.08s}.nhome .nhmain > *:nth-child(4){animation-delay:.12s}.nhome .nhmain > *:nth-child(5){animation-delay:.16s}.nhome .nhmain > *:nth-child(6){animation-delay:.2s}
+#props > .npwrap{animation:lpSlideIn .2s ease both}
+.cpanel:not([hidden]){animation:lpFadeUp .2s ease both}
+.lpt.on{animation:lpFadeIn .2s ease both}
+#labelWrap,#tPaper{transition:transform .25s ease}
+.toast.on{transition:opacity .2s ease,transform .25s cubic-bezier(.2,.8,.2,1)}
+#uiSwitch button{transition:background-color .2s ease,color .2s ease}
+.updban{animation:lpPop .3s cubic-bezier(.2,.8,.2,1) both}
+.lpswov{animation:lpFadeIn .15s ease both}
+.setmain .setgrp:not([hidden]){animation:lpFadeUp .22s ease both}
+.fobj.sel,.el.sel{transition:outline-color .15s ease}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}}`; document.head.appendChild(st); })();
 
 </script>
 </body>
