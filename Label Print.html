@@ -23359,7 +23359,7 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-fx2=
 document.addEventListener("click", e => { if (e.target.closest("[data-fx2]")) $$(".moremenu").forEach(m => m.hidden = true); });
 
 /* ---------- version number ---------- */
-const APP_VERSION = "v43";
+const APP_VERSION = "v44";
 (function(){ const b = $("header.top .brand small") || $(".brand small"); if (b && !b.querySelector(".appver")) b.insertAdjacentHTML("beforeend", ` <span class="appver">· ${APP_VERSION}</span>`); })();
 const _homeHTMLv = homeHTML; homeHTML = function(){ return _homeHTMLv.apply(this, arguments).replace("<small>" + esc(shopInfo().name) + "</small>", `<small>${esc(shopInfo().name)} · ${APP_VERSION}</small>`); };
 
@@ -23653,8 +23653,8 @@ function btSelectObj(o){ if (btFlow()){ if (o && o.id && fById(o.id)){ fSetSel([
 /* ---------- actions ---------- */
 function btLabelAdd(k){ const before = els().length; addByKind(k); return els().length > before ? els()[els().length - 1] : selEl(); }
 function btAddSourced(ds, text){
-  if (btFlow()){ const o = railAdd("text:box"); const n = (o && o.id) ? o : fSel(); if (!n) return; n.ds = ds; n.text = text || ""; renderFree(); save(); fSetSel([n.id]); return n; }
-  const el = btLabelAdd("text"); if (!el) return; el.ds = ds; el.text = text || ""; renderAll(); save(); return el; }
+  if (btFlow()){ const o = railAdd("text:box"); const n = (o && o.id) ? o : fSel(); if (!n) return; n.ds = ds; n.text = text || dsValue(n) || "data"; renderFree(); save(); fSetSel([n.id]); return n; }
+  const el = btLabelAdd("text"); if (!el) return; el.ds = ds; el.text = text || dsValue(el) || "data"; renderAll(); save(); return el; }
 const BTA = {
   new:() => btNewWizard(), open:() => openFilePicker(), home:() => { const h = $("#homeBtn"); h ? h.click() : (typeof showStart === "function" && showStart()); },
   save:() => { save(); try{ snapVersion && snapVersion(true); }catch(e){} toast("Saved on this computer"); }, saveas:() => download(fileName(".lpd"), new Blob([JSON.stringify(makePayload())], {type:"application/json"})),
@@ -23988,7 +23988,7 @@ function btBuild(){
   document.addEventListener("pointerdown", e => { if (open >= 0 && !e.target.closest("#btDrop, #btMenu")) closeMenu(); });
   document.addEventListener("click", e => { const a = e.target.closest("#btDrop [data-a], #btTb [data-a]") || (btOn() ? e.target.closest("#btTbx [data-a]") : null); if (!a) return; const k = a.dataset.a; closeMenu();
     if (k === "sel"){ BTP = null; document.body.classList.remove("btpaint"); return; }
-    if (k === "#shape" || k === "#ds"){ const r = a.getBoundingClientRect(), d = document.createElement("div"); d.id = "btDrop"; d.className = "btdrop"; d.innerHTML = dropHTML(k === "#shape" ? BT_MENU[3][1][4][1] : BT_MENU[3][1][10][1]); d.style.left = r.left + "px"; d.style.top = r.bottom + "px"; document.body.appendChild(d); open = 99; return; }
+    if (k === "#shape" || k === "#ds"){ const r = a.getBoundingClientRect(), d = document.createElement("div"); d.id = "btDrop"; d.className = "btdrop"; d.innerHTML = dropHTML(BT_MENU[3][1].find(x => x[0] === (k === "#shape" ? ">Shape" : ">Data source text"))[1]); d.style.left = r.left + "px"; d.style.top = r.bottom + "px"; document.body.appendChild(d); open = 99; return; }
     if (BTA[k]) try{ BTA[k](); }catch(err){ console.warn(err); toast("That isn't available here"); } });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && open >= 0) closeMenu(); if (e.altKey && !e.ctrlKey && /^[fevcatwh]$/i.test(e.key) && !isTypingEl(document.activeElement)){ const i = "fevcadtwh".indexOf(e.key.toLowerCase()); const map = {f:0, e:1, v:2, c:3, a:4, d:5, t:6, w:7, h:8}; if (map[e.key.toLowerCase()] != null && !e.shiftKey){ e.preventDefault(); showMenu(map[e.key.toLowerCase()]); } } }, true);
   // toolbar controls
@@ -24026,7 +24026,7 @@ function btStatusLoop(){ let last = ""; setInterval(() => { const st = $("#btSta
   }, 350); }
 
 /* ---------- two window styles: Modern (default) and Classic designer (BarTender-style), chosen in Settings ---------- */
-const btWantClassic = () => !!(S.prefs && S.prefs.classic) && innerWidth > 760;
+const btWantClassic = () => !!S.prefs && S.prefs.classic !== false && innerWidth > 760;
 const btOn = () => document.body.classList.contains("classic");
 function btSmartPrint(){ // modern UI: plain designs print straight away as before; designs that use data sources, sheets or questions get the Print window
   const c = cfg(); if (dsVariable() || dsPrompts().length || dsHasSerial() || (!isFlow() && c.sheet)) return btPrintDialog(); return isFlow() ? tPrint() : doPrint(); }
@@ -24048,7 +24048,7 @@ window.addEventListener("keydown", e => { if (btOn() || document.querySelector("
 // Settings → Window style
 const _renderSettingsBt = renderSettings; renderSettings = function(){ _renderSettingsBt.apply(this, arguments);
   const grid = $("#setBody .setsec .field"); if (!grid || grid.querySelector("#btStyleSel")) return;
-  grid.insertAdjacentHTML("afterbegin", `<label class="f"><span>Window style</span><select class="fin" id="btStyleSel"><option value="">Modern (big buttons, works on phones)</option><option value="1" ${S.prefs.classic ? "selected" : ""}>Classic designer (BarTender-style menus &amp; toolbars)</option></select></label>`);
+  grid.insertAdjacentHTML("afterbegin", `<label class="f"><span>Window style</span><select class="fin" id="btStyleSel"><option value="">Modern (big buttons, works on phones)</option><option value="1" ${S.prefs.classic !== false ? "selected" : ""}>Classic designer (BarTender-style menus &amp; toolbars)</option></select></label>`);
   grid.querySelector("#btStyleSel").onchange = e => { S.prefs.classic = !!e.target.value; save(); toast("Switching window style…"); setTimeout(() => location.reload(), 300); }; };
 // extra entries in the modern label panel and the quick search
 const _renderPropsBt = typeof renderProps === "function" ? renderProps : null;
@@ -24150,6 +24150,218 @@ body:not(.classic).btformview #btForm{top:0;bottom:0}
 .kt{border-collapse:collapse;width:100%}.kt td{padding:5px 6px;border-bottom:1px solid #e1e4e8}.kt kbd{font:12px var(--btmono);background:#fff;border:1px solid #c3c9d1;border-radius:3px;padding:1px 5px}
 @media (max-width:760px){.btbars{max-height:66px;overflow:auto}.pfgrid,.stk,.fdbody{grid-template-columns:1fr}.fdrow{grid-template-columns:24px 1fr 1fr}.dqrow{grid-template-columns:1fr}body.classic #thermalView aside.tadd{width:auto;max-height:40vh}}`; document.head.appendChild(st);
   const setTop = () => { const s = $("#btShell"); if (s) document.documentElement.style.setProperty("--btTop", s.getBoundingClientRect().bottom + "px"); }; setInterval(setTop, 800); setTimeout(setTop, 100); })();
+
+</script>
+<script>
+/* ================= v44: document tabs, clean settings, saving (device + folder + file), manual updates ================= */
+
+/* ---------- 1. fixes: staff names in the Products panel, toolbox pinned to the top ---------- */
+const _renderPanelV44 = renderPanel; renderPanel = function(k){ const r = _renderPanelV44.apply(this, arguments);
+  if (k === "products"){ const P = $('.cpanel[data-panel="products"]'); if (P && !P.querySelector(".v44store")) P.insertAdjacentHTML("beforeend", `<div class="v44store"><h3>Store prints</h3>
+    <button class="ctxt" data-v44s="staff">👥 <b>Staff names</b> (week-off list)</button><button class="ctxt" data-v44s="list">📝 <b>Simple list</b> (S.No · Name · Cost)</button><button class="ctxt" data-v44s="shelf">🏷️ <b>Shelf tag form</b></button><button class="ctxt" data-v44s="all">🗂 All store prints…</button></div>`); }
+  return r; };
+document.addEventListener("click", e => { const b = e.target.closest("[data-v44s]"); if (!b) return; const k = b.dataset.v44s;
+  if (k === "staff") openStaffForm(null); else if (k === "list") openListForm(null); else if (k === "shelf") (typeof openShelfForm === "function" ? openShelfForm(null) : openStore()); else openStore(); });
+if (typeof BTA !== "undefined"){ BTA.c_staff = () => { if (!isFlow()) setWork("thermal"); setTimeout(() => openStaffForm(null), 60); }; BTA.c_list = () => { if (!isFlow()) setWork("thermal"); setTimeout(() => openListForm(null), 60); };
+  try{ const C = BT_MENU[3][1], i = C.findIndex(x => x[1] === "c_chart"); C.splice(i + 1, 0, ["Staff names list…", "c_staff"], ["Simple list…", "c_list"]); }catch(e){} }
+
+/* a thermal/A4 design that only has free items (no page blocks) is a project too */
+touchRecent = function(force){
+  const data = curData();
+  if (isFlow() ? !(data.blocks.length || (data.free || []).length) : !data.els.length) return;
+  const list = LS.get("recents", []); const key = recentKey();
+  const json = JSON.stringify(data), name = curName();
+  let id = S.curRecent[key]; let i = id ? list.findIndex(r => r.id === id) : -1;
+  // same design already in recents (opened again, or picked twice): reuse that entry instead of adding a copy
+  if (i < 0){ const j = list.findIndex(r => r.kind === S.work && r.size === S.size && r.json === json); if (j >= 0){ i = j; id = list[j].id; } }
+  for (let x = list.length - 1; x >= 0; x--) if (x !== i && list[x].kind === S.work && list[x].size === S.size && list[x].json === json){ list.splice(x, 1); if (x < i) i--; }
+  if (i >= 0 && !force && list[i].json === json && list[i].name === name) return;
+  const entry = {id:id || uid(), kind:S.work, size:S.size, name, at:Date.now(), json};
+  if (i >= 0) list.splice(i, 1);
+  list.unshift(entry); S.curRecent[key] = entry.id; saveCur();
+  const cnt = {}; let out = list.filter(r => { const k = r.kind + ":" + r.size; cnt[k] = (cnt[k] || 0) + 1; return cnt[k] <= 300; });
+  for (;;){ try{ localStorage.setItem("lp.recents", JSON.stringify(out)); break; }catch(e){ if (out.length <= 1) break; out = out.slice(0, Math.max(1, Math.floor(out.length * 0.9))); } }
+  if (out.length < list.length - 1 && !S.warnedFull){ S.warnedFull = true; toast("Storage is nearly full. The oldest files were removed. Export a backup in Settings."); }
+};
+
+/* ---------- 2. document tabs ---------- */
+let TB = LS.get("tabs", null); let TBQ = false;
+const tbKey = () => S.work + ":" + S.size;
+function tbInit(){ if (!TB || !Array.isArray(TB.list) || !TB.list.length){ TB = {list:[{tid:uid(), kind:S.work, size:S.size, rid:S.curRecent[tbKey()] || null, name:curName()}], active:null}; TB.active = TB.list[0].tid; }
+  if (!TB.list.find(t => t.tid === TB.active)) TB.active = TB.list[0].tid; tbSync(); }
+const tbAct = () => TB.list.find(t => t.tid === TB.active);
+function tbSync(){ const t = tbAct(); if (!t) return; t.kind = S.work; t.size = S.size; t.rid = S.curRecent[tbKey()] || t.rid || null; if (S.curRecent[tbKey()] === null && t.rid && !LS.get("recents", []).some(r => r.id === t.rid)) t.rid = null; t.name = curName(); LS.set("tabs", TB); }
+function tbSaveCur(){ try{ finishEdit(); }catch(e){} try{ if (S.fedit) fStopEdit(true); }catch(e){} try{ touchRecent(true); }catch(e){} const t = tbAct(); if (t) t.rid = S.curRecent[tbKey()] || t.rid || null; tbSync(); }
+function tbQuiet(fn){ const tt = toast; toast = () => {}; try{ fn(); } finally { toast = tt; } }
+function tbLoad(t){ // put tab t's project on the screen
+  TBQ = true; try{
+    if (!S.settings[t.size]) t.size = (sizesOf(t.kind)[0] || [])[0] || S.size;
+    if (S.work !== t.kind) tbQuiet(() => setWork(t.kind));
+    S.size = t.size; S.lastSize[t.kind] = t.size;
+    const r = t.rid && LS.get("recents", []).find(x => x.id === t.rid);
+    if (r) tbQuiet(() => openRecent(t.rid));
+    else { S.curRecent[tbKey()] = null; saveCur(); if (isFlow()) S.tdocs[S.size] = {blocks:[], free:[], name:t.name && !/^Untitled/.test(t.name) ? t.name : ""}; else { S.designs[S.size] = []; S.product = ""; } }
+    S.sel = null; S.multi = []; S.tsel = null; S.fsels = []; S.undo = []; S.redo = []; TU = []; TR = []; S.zoom = null; updUndo && updUndo(); renderAll(); save();
+  } finally { TBQ = false; } }
+function tbGo(tid){ if (tid === TB.active) return; tbSaveCur(); const t = TB.list.find(x => x.tid === tid); if (!t) return; TB.active = tid; tbLoad(t); tbSync(); tbRender(); }
+function tbNew(kind){ tbSaveCur(); const t = {tid:uid(), kind:kind || S.work, size:kind && kind !== S.work ? ((S.settings[S.lastSize[kind]] && S.lastSize[kind]) || (sizesOf(kind)[0] || [])[0]) : S.size, rid:null, name:""};
+  const i = TB.list.findIndex(x => x.tid === TB.active); TB.list.splice(i + 1, 0, t); TB.active = t.tid; tbLoad(t); tbSync(); tbRender(); return t; }
+function tbClose(tid){ const i = TB.list.findIndex(x => x.tid === tid); if (i < 0) return; if (tid === TB.active) tbSaveCur();
+  TB.list.splice(i, 1); if (!TB.list.length){ const t = {tid:uid(), kind:S.work, size:S.size, rid:null, name:""}; TB.list.push(t); TB.active = t.tid; tbLoad(t); }
+  else if (tid === TB.active){ const n = TB.list[Math.min(i, TB.list.length - 1)]; TB.active = n.tid; tbLoad(n); }
+  tbSync(); tbRender(); }
+// opening a saved project from Home / Recent opens it in its own tab (or jumps to the tab that already has it)
+const _openRecentV44 = openRecent; openRecent = function(id){ if (TBQ || !TB) return _openRecentV44.apply(this, arguments);
+  const open = TB.list.find(t => t.rid === id); if (open){ if (open.tid !== TB.active){ closeGal && closeGal(); tbGo(open.tid); } else _openRecentV44.apply(this, arguments); return; }
+  const cur = tbAct(), hasContent = isFlow() ? (tblocks().length || fobjs().length) : els().length;
+  if (cur && hasContent){ tbSaveCur(); const r = LS.get("recents", []).find(x => x.id === id); const t = {tid:uid(), kind:r ? r.kind : S.work, size:r ? r.size : S.size, rid:id, name:r ? r.name : ""}; TB.list.splice(TB.list.indexOf(cur) + 1, 0, t); TB.active = t.tid; }
+  const res = _openRecentV44.apply(this, arguments); tbSync(); tbRender(); return res; };
+const tbIcon = k => ({label:"🏷️", thermal:"🧾", a4:"📄"})[k] || "📄";
+function tbRender(){ let bar = $("#lpTabs"); if (!bar) return; const sv = $("#lpSaved")?.outerHTML || `<span id="lpSaved" class="lpsaved"></span>`;
+  bar.innerHTML = `<div class="lptl" role="tablist">${TB.list.map(t => { const c = S.settings[t.size]; const nm = (t.tid === TB.active ? curName() : t.name) || (t.kind === "label" ? "Untitled label" : "Untitled slip");
+    return `<div class="lpt${t.tid === TB.active ? " on" : ""}" role="tab" aria-selected="${t.tid === TB.active}" data-tid="${t.tid}" title="${esc(nm)} · ${esc(c ? (c.label || "") : "")}"><span>${tbIcon(t.kind)}</span><b>${esc(nm)}</b><em>${esc(c ? c.label || (c.w + "×" + c.h) : "")}</em><button class="lptx" data-tx="${t.tid}" aria-label="Close tab">✕</button></div>`; }).join("")}
+    <div class="lpplus"><button class="lptn" data-tn="" title="New tab (same kind)">＋</button><button class="lptn lptdd" data-tdd="1" title="New tab of another kind" aria-label="New tab menu">▾</button></div></div>${sv}`; }
+function tbMount(){ if ($("#lpTabs")) $("#lpTabs").remove(); const bar = document.createElement("div"); bar.id = "lpTabs"; bar.className = "lptabs";
+  if (document.body.classList.contains("classic")) $("#btShell").appendChild(bar); else $("#app > header.top")?.appendChild(bar);
+  bar.addEventListener("click", e => { const x = e.target.closest("[data-tx]"); if (x){ e.stopPropagation(); tbClose(x.dataset.tx); return; }
+    const n = e.target.closest("[data-tn]"); if (n){ tbNew(); return; }
+    if (e.target.closest("[data-tdd]")){ const r = e.target.getBoundingClientRect(), d = document.createElement("div"); d.className = "btdrop lpdd"; d.style.left = Math.min(r.left, innerWidth - 240) + "px"; d.style.top = r.bottom + "px";
+      d.innerHTML = [["label", "🏷️ New sticker label"], ["thermal", "🧾 New thermal slip"], ["a4", "📄 New A4 page"]].map(([k, n2]) => `<button class="btmi" data-tk="${k}"><span>${n2}</span></button>`).join("") + `<hr><button class="btmi" data-tk="home"><span>📂 Open a saved project…</span></button><button class="btmi" data-tk="file"><span>📁 Open a project file…</span></button>`;
+      document.body.appendChild(d); const off = ev => { if (!ev.target.closest(".lpdd")){ d.remove(); document.removeEventListener("pointerdown", off, true); } }; document.addEventListener("pointerdown", off, true);
+      d.onclick = ev => { const b = ev.target.closest("[data-tk]"); if (!b) return; d.remove(); const k = b.dataset.tk; if (k === "home"){ tbNew(); typeof showStart === "function" ? showStart() : $("#homeBtn")?.click(); } else if (k === "file"){ tbNew(); openFilePicker(); } else tbNew(k); }; return; }
+    const t = e.target.closest("[data-tid]"); if (t) tbGo(t.dataset.tid); });
+  bar.addEventListener("auxclick", e => { const t = e.target.closest("[data-tid]"); if (t && e.button === 1){ e.preventDefault(); tbClose(t.dataset.tid); } });
+  tbRender(); }
+// keep the active tab in step with what's on screen, and show "Saved"
+let tbLastJson = "";
+const TB_T0 = Date.now(); setInterval(() => { if (!TB || Date.now() - TB_T0 < 1200) return; const before = JSON.stringify(tbAct()); tbSync(); const L = $("#lpTabs"); if (L && JSON.stringify(tbAct()) !== before) tbRender();
+  const s = $("#lpSaved"); if (s){ let j = ""; try{ j = JSON.stringify(curData()); }catch(e){} if (j !== tbLastJson){ tbLastJson = j; s.textContent = "● Saving…"; s.className = "lpsaved busy"; setTimeout(() => { try{ touchRecent(); }catch(e){} tbSync(); s.textContent = "✓ Saved on this device" + (FS.dir && FS.ok ? " + folder" : ""); s.className = "lpsaved"; fsAutoWrite(); }, 900); } } }, 1500);
+window.addEventListener("beforeunload", () => { try{ tbSaveCur(); }catch(e){} });
+if (typeof BTA !== "undefined"){ const nw = BTA.new; BTA.new = () => { tbNew(); nw(); }; BTA.newtab = () => tbNew(); BTA.closetab = () => tbClose(TB.active);
+  try{ BT_MENU[0][1].splice(1, 0, ["New Tab", "newtab", "Alt+T"], ["Close Tab", "closetab", "Alt+W"]); BT_MENU[7][1].unshift(["New Tab", "newtab", "Alt+T"], ["Close Tab", "closetab", "Alt+W"], ["-"]); }catch(e){} }
+window.addEventListener("keydown", e => { if (!TB || document.querySelector(".btmodal")) return; if (e.altKey && !e.ctrlKey && !e.metaKey){ const k = e.key.toLowerCase();
+  if (k === "t"){ e.preventDefault(); e.stopImmediatePropagation(); tbNew(); } else if (k === "w"){ e.preventDefault(); e.stopImmediatePropagation(); tbClose(TB.active); }
+  else if (/^[1-9]$/.test(k) && TB.list[+k - 1]){ e.preventDefault(); tbGo(TB.list[+k - 1].tid); } } }, true);
+
+// picking Label / Thermal / A4 opens it in its own tab (or jumps to the open one) when the current tab has a design in it
+const _setWorkV44 = setWork; setWork = function(w){ if (TBQ || !TB || w === S.work) return _setWorkV44.apply(this, arguments);
+  const cur = tbAct(), has = isFlow() ? (tblocks().length || fobjs().length) : els().length; if (!cur || !has) return _setWorkV44.apply(this, arguments);
+  const other = TB.list.find(x => x.kind === w && x.tid !== cur.tid); if (other){ tbGo(other.tid); return; } tbNew(w); };
+
+/* ---------- 3. saving: device (automatic), a folder on this computer (automatic), project files ---------- */
+const FS = {dir:null, ok:false, last:{}};
+const lpIdb = (() => { let p; const db = () => p || (p = new Promise((res, rej) => { const r = indexedDB.open("lp-files", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }));
+  return {get:k => db().then(d => new Promise(res => { const q = d.transaction("kv").objectStore("kv").get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(null); })),
+    set:(k, v) => db().then(d => new Promise(res => { const t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = () => res(true); t.onerror = () => res(false); }))}; })();
+const fsName = (n, kind) => (String(n || "Untitled").replace(/[\\/:*?"<>|]+/g, "-").trim().slice(0, 60) || "Untitled") + ` (${({label:"label", thermal:"thermal", a4:"A4"})[kind] || kind}).lpd`;
+function recentPayload(r){ let d; try{ d = JSON.parse(r.json); }catch(e){ return null; } const c = d.settings || S.settings[r.size] || {}; return {app:"label-print", v:1, kind:r.kind, name:r.name, cfg:JSON.parse(JSON.stringify(c)), data:r.kind === "label" ? {els:d.els} : {blocks:d.blocks, bg:d.bg || "", border:d.border || 0, bcol:d.bcol || "", free:d.free || []}}; }
+async function fsCheck(ask){ if (!FS.dir) return false; try{ let p = await FS.dir.queryPermission({mode:"readwrite"}); if (p !== "granted" && ask) p = await FS.dir.requestPermission({mode:"readwrite"}); FS.ok = p === "granted"; }catch(e){ FS.ok = false; } return FS.ok; }
+async function fsWrite(name, payload){ const fh = await FS.dir.getFileHandle(name, {create:true}), w = await fh.createWritable(); await w.write(new Blob([JSON.stringify(payload)], {type:"application/json"})); await w.close(); }
+let fsBusy = false;
+async function fsAutoWrite(){ if (!FS.dir || !FS.ok || fsBusy) return; fsBusy = true; try{ const id = S.curRecent[tbKey()]; const r = id && LS.get("recents", []).find(x => x.id === id); if (!r) return; const p = recentPayload(r); if (!p) return; const nm = fsName(r.name, r.kind), j = r.json + nm;
+  if (FS.last[id] === j) return; await fsWrite(nm, p); FS.last[id] = j; }catch(e){ console.warn("folder save", e); FS.ok = false; } finally { fsBusy = false; } }
+async function fsPick(){ if (!window.showDirectoryPicker){ toast("This browser can't save to a folder. Use Chrome or Edge on a computer, or the desktop app."); return; }
+  try{ FS.dir = await showDirectoryPicker({id:"label-print", mode:"readwrite"}); await lpIdb.set("dir", FS.dir); FS.ok = true; FS.last = {}; await fsAll(true); toast("Every project now also saves in the folder “" + FS.dir.name + "”"); renderSettings(); }catch(e){ if (e.name !== "AbortError") toast("Couldn't use that folder"); } }
+async function fsAll(quiet){ if (!FS.dir || !(await fsCheck(true))) return; let n = 0; for (const r of LS.get("recents", [])){ const p = recentPayload(r); if (!p) continue; try{ await fsWrite(fsName(r.name, r.kind), p); FS.last[r.id] = r.json + fsName(r.name, r.kind); n++; }catch(e){} } if (!quiet) toast(`${n} projects saved to “${FS.dir.name}”`); }
+lpIdb.get("dir").then(async d => { if (d){ FS.dir = d; await fsCheck(false); } }).catch(() => {});
+function downloadAllProjects(){ const all = LS.get("recents", []).map(recentPayload).filter(Boolean); download(`Label Print projects ${new Date().toISOString().slice(0, 10)}.lpd`, new Blob([JSON.stringify({app:"label-print", v:1, kind:"projects", projects:all})], {type:"application/json"})); }
+// opening a file that holds many projects: put them all in Recent
+const _openAnyFileV44 = openAnyFile; openAnyFile = async function(file){ if (file && /\.lpd$|\.json$/i.test(file.name)){ let p = null; try{ p = JSON.parse(await file.text()); }catch(x){}
+  if (p && p.kind === "projects" && Array.isArray(p.projects)){ const list = LS.get("recents", []); let n = 0;
+    p.projects.forEach(q => { if (!q || !q.data || !q.cfg) return; const size = Object.keys(S.settings).find(k => kindOf(S.settings[k]) === q.kind && S.settings[k].w === q.cfg.w && (q.kind !== "label" || S.settings[k].h === q.cfg.h)) || (sizesOf(q.kind)[0] || [])[0]; if (!size) return;
+      const json = JSON.stringify(q.kind === "label" ? {els:q.data.els, settings:q.cfg} : q.data); if (list.some(r => r.json === json)) return; list.push({id:uid(), kind:q.kind, size, name:q.name || "Project", at:Date.now(), json}); n++; });
+    LS.set("recents", list); toast(`${n} project${n === 1 ? "" : "s"} added · open them from Home · Recent`); return; } }
+  return _openAnyFileV44.apply(this, arguments); };
+
+/* ---------- 4. updates: check GitHub (or wherever the app is hosted) and update when you choose ---------- */
+const vnum = v => parseInt(String(v || "").replace(/\D/g, "")) || 0;
+async function updCheck(quiet){ const st = $("#updState");
+  if (!/^https?:$/.test(location.protocol)){ if (!quiet && st) st.textContent = "This copy is a file on your computer. Download the new Label Print.html to update it."; return null; }
+  if (st && !quiet) st.textContent = "Checking…";
+  try{ const res = await fetch(location.pathname.replace(/[^/]*$/, "") + "index.html?upd=" + Date.now(), {cache:"no-store"}); const t = await res.text(); const m = t.match(/APP_VERSION = "([^"]+)"/); if (!m) throw 0;
+    const nv = m[1], newer = vnum(nv) > vnum(APP_VERSION); S.prefs.updSeen = nv; save();
+    if (st) st.innerHTML = newer ? `New version <b>${esc(nv)}</b> is ready. <button class="btn primary" data-upd="go">Update now</button>` : `You have the latest version (${esc(APP_VERSION)}).`;
+    if (newer && quiet) updBanner(nv); return newer ? nv : false; }
+  catch(e){ if (st && !quiet) st.textContent = "Couldn't check right now (no internet?). Try again later."; return null; } }
+async function updApply(){ toast("Updating…"); try{ if (navigator.serviceWorker){ const regs = await navigator.serviceWorker.getRegistrations(); for (const r of regs){ try{ await r.update(); }catch(e){} } } if (window.caches){ for (const k of await caches.keys()) await caches.delete(k); } }catch(e){} try{ tbSaveCur(); save(); }catch(e){} setTimeout(() => location.reload(), 400); }
+function updBanner(nv){ if ($("#updBan")) return; const b = document.createElement("div"); b.id = "updBan"; b.className = "updban"; b.innerHTML = `<span>🔄 Label Print <b>${esc(nv)}</b> is available.</span><button class="btn primary" data-upd="go">Update now</button><button class="btn" data-upd="later">Later</button>`; document.body.appendChild(b); }
+document.addEventListener("click", e => { const u = e.target.closest("[data-upd]"); if (!u) return; if (u.dataset.upd === "go") updApply(); else if (u.dataset.upd === "check") updCheck(false); else $("#updBan")?.remove(); });
+setTimeout(() => { if (S.prefs.autoUpd !== false) updCheck(true); }, 4000);
+
+/* ---------- 5. Settings: one clean page per topic ---------- */
+const SET_CATS = [["general", "⚙️", "General", /Quick setup|When the app opens|New text|Expiry/], ["shop", "🏪", "Shop & logo", /Shop details|Default logo|Owner PIN|Brand/], ["products", "📦", "Products & Google Sheet", /product/i],
+  ["print", "🖨", "Printers & sizes", /Printer|Printing|Label sizes|Thermal paper|alignment/i], ["save", "💾", "Saving & backup", /Saving|Sharing|Backup/i], ["app", "🔄", "App & updates", /App &|Window/], ["more", "…", "More", /./]];
+let SET_TAB = "general";
+const _renderSettingsV44 = renderSettings; renderSettings = function(){ _renderSettingsV44.apply(this, arguments); try{ setOrganise(); }catch(e){ console.warn("settings", e); } };
+function setOrganise(){
+  const B = $("#setBody"); if (!B || B.querySelector(".setnav")) return;
+  const P = S.prefs, nProj = LS.get("recents", []).length, canDir = !!window.showDirectoryPicker;
+  B.insertAdjacentHTML("beforeend", `<section class="setsec"><h3>Saving</h3>
+    <p class="hint" style="margin-top:0">✓ Every project saves on this device automatically while you work (${nProj} saved). Open them from Home · Recent or the tab bar.</p>
+    <div class="setcard"><b>📁 Also save to a folder on this computer</b><span class="hint">Each project is written as a .lpd file and kept up to date. Open the files later, even without internet. ${canDir ? "" : "<br>Needs Chrome or Edge on a computer, or the desktop app."}</span>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px">${FS.dir ? `<span class="pill">${FS.ok ? "✓ Saving to" : "⚠ Paused:"} “${esc(FS.dir.name)}”</span>${FS.ok ? "" : `<button class="btn primary" data-sv="reconnect">Allow again</button>`}<button class="btn" data-sv="pick">Change folder…</button><button class="btn" data-sv="all">Save all projects there now</button><button class="btn" data-sv="stop">Stop</button>` : `<button class="btn primary" data-sv="pick" ${canDir ? "" : "disabled"}>Choose folder…</button>`}</div></div>
+    <div class="setcard"><b>⬇ Project files</b><span class="hint">Download a file to keep, email or open on another computer.</span>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn" data-sv="one">Download this project</button><button class="btn" data-sv="every">Download all projects (one file)</button><button class="btn" data-sv="open">Open a project file…</button></div></div>
+    <div class="setcard"><b>☁️ Google Drive (all devices)</b><span class="hint">Automatic cloud saving to your Google Drive is coming in the next update.</span></div></section>
+  <section class="setsec"><h3>App &amp; updates</h3>
+    <div class="setcard"><b>Version ${esc(typeof APP_VERSION !== "undefined" ? APP_VERSION : "")}</b><span class="hint" id="updState">Updates are never installed by themselves. Check, then press Update now.</span>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn primary" data-upd="check">Check for updates</button></div>
+      <label class="check" style="margin-top:8px"><input type="checkbox" id="updAuto" ${P.autoUpd !== false ? "checked" : ""}> Tell me when a new version is available</label></div>
+    <div class="setcard" id="setStyleCard"><b>Window style</b><span class="hint">Classic designer has BarTender-style menus and toolbars. Phones always use the simple style.</span></div></section>`);
+  const style = B.querySelector("#btStyleSel"); if (style){ const card = B.querySelector("#setStyleCard"); const lab = style.closest("label"); card.appendChild(lab); lab.querySelector("span").textContent = ""; }
+  const secs = [...B.querySelectorAll(":scope > section.setsec")], groups = {};
+  secs.forEach(s => { const h = (s.querySelector("h3")?.textContent || "").trim(); const c = SET_CATS.find(([, , , re]) => re.test(h)); (groups[c[0]] = groups[c[0]] || []).push(s); });
+  const nav = document.createElement("nav"); nav.className = "setnav"; nav.innerHTML = `<input class="fin setq" placeholder="🔍 Search settings" id="setQ">` + SET_CATS.filter(([k]) => groups[k]).map(([k, ic, n]) => `<button data-sc="${k}" class="${k === SET_TAB ? "on" : ""}"><span>${ic}</span>${n}</button>`).join("");
+  const main = document.createElement("div"); main.className = "setmain";
+  SET_CATS.forEach(([k, , n]) => { if (!groups[k]) return; const g = document.createElement("div"); g.className = "setgrp"; g.dataset.sg = k; g.innerHTML = `<h2 class="setgh">${n}</h2>`; groups[k].forEach(s => g.appendChild(s)); main.appendChild(g); });
+  B.prepend(nav); B.appendChild(main); B.classList.add("setorg");
+  if (!groups[SET_TAB]) SET_TAB = "general"; const show = () => { const q = ($("#setQ").value || "").trim().toLowerCase();
+    main.querySelectorAll(".setgrp").forEach(g => { if (q){ let any = false; g.querySelectorAll("section.setsec").forEach(s => { const m = s.textContent.toLowerCase().includes(q); s.hidden = !m; any = any || m; }); g.hidden = !any; } else { g.hidden = g.dataset.sg !== SET_TAB; g.querySelectorAll("section.setsec").forEach(s => s.hidden = false); } });
+    nav.querySelectorAll("[data-sc]").forEach(b => b.classList.toggle("on", !q && b.dataset.sc === SET_TAB)); };
+  show(); nav.addEventListener("click", e => { const b = e.target.closest("[data-sc]"); if (!b) return; SET_TAB = b.dataset.sc; $("#setQ").value = ""; show(); main.scrollTop = 0; B.scrollTop = 0; });
+  nav.querySelector("#setQ").addEventListener("input", show);
+  B.querySelector("#updAuto").onchange = e => { S.prefs.autoUpd = e.target.checked; save(); };
+  B.querySelectorAll("[data-sv]").forEach(b => b.onclick = async () => { const k = b.dataset.sv;
+    if (k === "pick") return fsPick(); if (k === "reconnect"){ await fsCheck(true); renderSettings(); return; } if (k === "all") return fsAll(false); if (k === "stop"){ FS.dir = null; FS.ok = false; await lpIdb.set("dir", null); renderSettings(); return; }
+    if (k === "one"){ tbSaveCur(); return download(fileName(".lpd"), new Blob([JSON.stringify(makePayload())], {type:"application/json"})); } if (k === "every"){ tbSaveCur(); return downloadAllProjects(); } if (k === "open"){ $("#setModal").hidden = true; return openFilePicker(); } });
+}
+
+/* ---------- 6. start ---------- */
+(function(){ try{ tbInit(); tbMount(); }catch(e){ console.error("tabs", e); } })();
+// the app clears the screen and shows Home when it opens; if tabs were open last time, bring them back instead (like a browser)
+setTimeout(() => { try{ if (!$("#askModal")?.hidden) return; const t = tbAct(), recs = LS.get("recents", []);
+  TB.list.forEach(x => { if (x.rid && !recs.some(r => r.id === x.rid)) x.rid = null; });
+  if (t && t.rid){ tbLoad(t); $("#startScr").hidden = true; tbSync(); tbRender(); } }catch(e){ console.warn("tabs restore", e); } }, 700);
+(function(){ const st = document.createElement("style"); st.textContent = `
+.lptabs{display:flex;align-items:flex-end;gap:8px;min-width:0}
+header.top > .lptabs{flex-basis:100%;margin:2px -14px -8px;padding:0 10px;background:rgba(0,0,0,.12)}
+#btShell > .lptabs{background:#dfe3e8;border-top:1px solid var(--btline,#c9ced6);padding:3px 6px 0}
+.lptl{display:flex;align-items:flex-end;gap:2px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin}
+.lpt{display:flex;align-items:center;gap:6px;max-width:230px;min-width:120px;height:30px;padding:0 6px 0 10px;border-radius:7px 7px 0 0;cursor:pointer;flex:none;font:500 12.5px var(--ui,system-ui,sans-serif);user-select:none}
+.lpt b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.lpt em{font-style:normal;opacity:.7;font-size:11px;white-space:nowrap}
+.lptx{border:0;background:transparent;width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;flex:none;color:inherit;opacity:.65}.lptx:hover{opacity:1;background:rgba(0,0,0,.12)}
+header.top .lpt{color:rgba(255,255,255,.85)}header.top .lpt:hover{background:rgba(255,255,255,.12)}header.top .lpt.on{background:var(--bg,#f4f4f7);color:var(--ink,#1b1b1f)}
+#btShell .lpt{background:#eceff2;border:1px solid #c3c9d1;border-bottom:0;color:#1b1f24;font-family:"Segoe UI",system-ui,sans-serif;height:27px;border-radius:4px 4px 0 0}#btShell .lpt.on{background:#fff;box-shadow:inset 0 2px #1f6fb2}
+.lpplus{display:flex;flex:none;margin-bottom:3px}.lptn{border:0;background:transparent;height:24px;min-width:26px;border-radius:5px;cursor:pointer;font-size:15px;color:inherit}header.top .lptn{color:#fff}.lptn:hover{background:rgba(0,0,0,.12)}.lptdd{font-size:11px;min-width:18px}
+.lpsaved{flex:none;font:500 11.5px var(--ui,system-ui,sans-serif);opacity:.85;margin:0 4px 7px;white-space:nowrap}.lpsaved.busy{opacity:.6}
+header.top .lpsaved{color:#fff}#btShell .lpsaved{color:#2a6b2f;font-family:"Segoe UI",system-ui,sans-serif}
+body.simple .lptabs{display:none!important}
+.v44store h3{margin:14px 0 6px}
+.main.adv-only > aside.side:not(.right) > .bttbtabs{position:sticky;top:0;z-index:6}
+#thermalView aside.tadd > .bttbtabs{position:sticky;top:0;z-index:6}
+/* settings */
+#setBody.setorg{display:grid;grid-template-columns:210px minmax(0,1fr);gap:0;padding:0!important;max-height:calc(100vh - 140px);overflow:hidden}
+.setnav{display:flex;flex-direction:column;gap:2px;padding:12px 8px;border-right:1px solid var(--line,#e3e3ea);background:var(--panel2,#f6f6f9);overflow:auto}
+.setnav .setq{margin-bottom:8px;height:34px}
+.setnav button{display:flex;gap:9px;align-items:center;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:9px;font:600 13.5px var(--ui,system-ui,sans-serif);color:var(--ink,#222);cursor:pointer}.setnav button span{width:20px;text-align:center}
+.setnav button:hover{background:rgba(0,0,0,.05)}.setnav button.on{background:var(--accent-soft,#ede6ff);color:var(--accent,#6d28d9)}
+.setmain{overflow:auto;padding:6px 20px 24px;max-height:calc(100vh - 140px)}
+.setgh{font:700 20px var(--ui,system-ui,sans-serif);margin:12px 0 4px}
+.setcard{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line,#e3e3ea);border-radius:12px;padding:12px 14px;margin:8px 0;background:var(--panel,#fff)}.setcard b{font-size:14px}
+.pill{display:inline-flex;align-items:center;padding:4px 10px;border-radius:99px;background:var(--accent-soft,#ede6ff);font:600 12.5px var(--ui,system-ui,sans-serif)}
+.updban{position:fixed;left:50%;bottom:44px;transform:translateX(-50%);z-index:700;display:flex;gap:10px;align-items:center;background:#111827;color:#fff;padding:10px 12px 10px 16px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.35);font:500 14px var(--ui,system-ui,sans-serif);flex-wrap:wrap}
+@media (max-width:760px){#setBody.setorg{grid-template-columns:1fr;max-height:none;overflow:visible}.setnav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line,#e3e3ea)}.setnav .setq{display:none}.setnav button{flex:none}.setmain{max-height:none;padding:6px 12px 20px}.lpt{min-width:96px}.lpt em{display:none}}`;
+  document.head.appendChild(st); })();
 
 </script>
 </body>

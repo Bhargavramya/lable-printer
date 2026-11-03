@@ -1,5 +1,5 @@
 // Label Print – offline support. Change the version when you upload a new index.html.
-const CACHE = "label-print-v43";
+const CACHE = "label-print-v44";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -14,6 +14,7 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com" || url.hostname === "cdn.jsdelivr.net";
   if (url.origin !== location.origin && !isFont) return;
+  if (url.searchParams.has("upd")) return; // update checks always ask the server
   // Show the saved copy straight away, and refresh it in the background when online.
   e.respondWith(caches.open(CACHE).then(async cache => {
     const hit = await cache.match(req);
