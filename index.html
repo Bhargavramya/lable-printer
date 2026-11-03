@@ -23364,7 +23364,7 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-fx2=
 document.addEventListener("click", e => { if (e.target.closest("[data-fx2]")) $$(".moremenu").forEach(m => m.hidden = true); });
 
 /* ---------- version number ---------- */
-const APP_VERSION = "v47";
+const APP_VERSION = "v48";
 (function(){ const b = $("header.top .brand small") || $(".brand small"); if (b && !b.querySelector(".appver")) b.insertAdjacentHTML("beforeend", ` <span class="appver">· ${APP_VERSION}</span>`); })();
 const _homeHTMLv = homeHTML; homeHTML = function(){ return _homeHTMLv.apply(this, arguments).replace("<small>" + esc(shopInfo().name) + "</small>", `<small>${esc(shopInfo().name)} · ${APP_VERSION}</small>`); };
 
@@ -24031,7 +24031,7 @@ function btStatusLoop(){ let last = ""; setInterval(() => { const st = $("#btSta
   }, 350); }
 
 /* ---------- two window styles: Modern (default) and Classic designer (BarTender-style), chosen in Settings ---------- */
-const btWantClassic = () => !!S.prefs && S.prefs.classic === true && innerWidth > 760;
+const btWantClassic = () => { let v = null; try{ v = sessionStorage.getItem("lpStyle"); }catch(e){} return v === "classic" && innerWidth > 760; };
 const btOn = () => document.body.classList.contains("classic");
 function btSmartPrint(){ // modern UI: plain designs print straight away as before; designs that use data sources, sheets or questions get the Print window
   const c = cfg(); if (dsVariable() || dsPrompts().length || dsHasSerial() || (!isFlow() && c.sheet)) return btPrintDialog(); return isFlow() ? tPrint() : doPrint(); }
@@ -24053,8 +24053,8 @@ window.addEventListener("keydown", e => { if (btOn() || document.querySelector("
 // Settings → Window style
 const _renderSettingsBt = renderSettings; renderSettings = function(){ _renderSettingsBt.apply(this, arguments);
   const grid = $("#setBody .setsec .field"); if (!grid || grid.querySelector("#btStyleSel")) return;
-  grid.insertAdjacentHTML("afterbegin", `<label class="f"><span>Window style</span><select class="fin" id="btStyleSel"><option value="">Simple (recommended · works on phones)</option><option value="1" ${S.prefs.classic === true ? "selected" : ""}>Classic designer (BarTender-style menus &amp; toolbars)</option></select></label>`);
-  grid.querySelector("#btStyleSel").onchange = e => { S.prefs.classic = !!e.target.value; save(); toast("Switching window style…"); setTimeout(() => location.reload(), 300); }; };
+  grid.insertAdjacentHTML("afterbegin", `<label class="f"><span>Window style</span><select class="fin" id="btStyleSel"><option value="">Simple (recommended · works on phones)</option><option value="1" ${document.body.classList.contains("classic") ? "selected" : ""}>Classic designer (BarTender-style menus &amp; toolbars)</option></select></label>`);
+  grid.querySelector("#btStyleSel").onchange = e => { uiSet(e.target.value ? "classic" : "simple"); }; };
 // extra entries in the modern label panel and the quick search
 const _renderPropsBt = typeof renderProps === "function" ? renderProps : null;
 if (_renderPropsBt) renderProps = function(){ const r = _renderPropsBt.apply(this, arguments); try{ const P = $("#props"); if (P && !btOn() && !P.querySelector(".btxtra")){ const o = btSel();
@@ -24379,7 +24379,7 @@ if (typeof BTA !== "undefined"){ BTA.sharepdf = () => sharePDF(); try{ BT_MENU[0
 /* ---------- 6. start ---------- */
 (function(){ try{ tbInit(); tbMount(); }catch(e){ console.error("tabs", e); } })();
 // the app clears the screen and shows Home when it opens; if tabs were open last time, bring them back instead (like a browser)
-setTimeout(() => { try{ if (!$("#askModal")?.hidden) return; const t = tbAct(), recs = LS.get("recents", []);
+setTimeout(() => { try{ if (window.__tbRestored) return; if (!$("#askModal")?.hidden) return; const t = tbAct(), recs = LS.get("recents", []);
   TB.list.forEach(x => { if (x.rid && !recs.some(r => r.id === x.rid)) x.rid = null; });
   if (t && t.rid){ tbLoad(t); $("#startScr").hidden = true; tbSync(); tbRender(); } }catch(e){ console.warn("tabs restore", e); } }, 700);
 (function(){ const st = document.createElement("style"); st.textContent = `
@@ -24420,8 +24420,10 @@ body.simple .lptabs{display:none!important}
 <script>
 /* ================= v46: Simple view is the default; one fixed Simple | Classic switch in the top-right corner of every screen ================= */
 const lpClassic = () => document.body.classList.contains("classic");
-function uiSet(style){ const want = style === "classic"; if (want === lpClassic()) return; S.prefs.classic = want; save(); try{ tbSaveCur(); }catch(e){}
-  toast(want ? "Opening the Classic designer…" : "Opening the Simple view…"); setTimeout(() => location.reload(), 350); }
+// Classic lasts until the app is closed; every time the app opens it starts in Simple
+function uiSet(style){ const want = style === "classic"; if (want === lpClassic()) return; try{ tbSaveCur(); }catch(e){} try{ clearTimeout(saveT); LS.set("designs", S.designs); LS.set("settings", S.settings); LS.set("tdocs", S.tdocs); LS.set("work", S.work); LS.set("size", S.size); LS.set("prefs", S.prefs); LS.set("lastSize", S.lastSize); LS.set("tabs", TB); }catch(e){}
+  try{ sessionStorage.setItem("lpStyle", want ? "classic" : "simple"); sessionStorage.setItem("lpSwitching", "1"); }catch(e){}
+  const ov = document.createElement("div"); ov.className = "lpswov"; ov.innerHTML = `<div><i></i>${want ? "Opening the Classic designer…" : "Opening the Simple view…"}</div>`; document.body.appendChild(ov); setTimeout(() => location.reload(), 120); }
 (function uiSwitch(){ const sw = document.createElement("div"); sw.id = "uiSwitch"; sw.setAttribute("role", "group"); sw.setAttribute("aria-label", "Window style");
   sw.innerHTML = `<button data-ui="simple" aria-pressed="${!lpClassic()}" title="Simple view: big buttons, easy to use">Simple</button><button data-ui="classic" aria-pressed="${lpClassic()}" title="Classic designer: BarTender-style menus and toolbars">Classic</button>`;
   sw.onclick = e => { const b = e.target.closest("[data-ui]"); if (b) uiSet(b.dataset.ui); }; document.body.appendChild(sw);
@@ -24449,6 +24451,7 @@ function simpleMore(anchor){ $("#lpMoreDd")?.remove(); const d = document.create
 setInterval(() => { const l = $("#modeBtn .lbl"); if (l && /Simple view/.test(l.textContent)) l.textContent = "Staff screen"; }, 700);
 
 (function(){ const st = document.createElement("style"); st.textContent = `
+.lpswov{position:fixed;inset:0;z-index:2000;background:#f6f5f8;display:grid;place-items:center;font:600 16px Poppins,system-ui,sans-serif;color:#3b3744}.lpswov div{display:flex;align-items:center;gap:12px}.lpswov i{width:22px;height:22px;border-radius:50%;border:3px solid #d9d5e1;border-top-color:#5b21b6;animation:lpspin .8s linear infinite}@keyframes lpspin{to{transform:rotate(360deg)}}
 #uiSwitch{position:fixed;top:8px;right:12px;z-index:650;display:flex;gap:2px;padding:3px;border-radius:12px;background:#ffffff;border:1px solid #d9d5e1;box-shadow:0 2px 10px rgba(30,20,60,.12);font:600 13px Poppins,system-ui,sans-serif}
 #uiSwitch button{height:30px;min-width:72px;padding:0 12px;border:0;border-radius:9px;background:transparent;color:#3b3744;font:inherit;cursor:pointer}
 #uiSwitch button[aria-pressed="true"]{background:#5b21b6;color:#ffffff}
@@ -24647,6 +24650,13 @@ body.lpnew #props{background:#fff}
 .nfill button{height:36px;padding:0 12px;border-radius:18px;border:1px solid #e9cf95;background:#fff;font:500 12.5px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22}.nfill button:hover{background:#fff3da}.nfill .nfe{border-color:#d9d5e1}
 body.lpnew #thermalView{background:#f6f5f8}
 @media (max-width:1100px){.nhcards{grid-template-columns:1fr 1fr}.nhrecent{grid-template-columns:repeat(3,minmax(0,1fr))}#nHead .nhsaved{display:none}}`; document.head.appendChild(st); })();
+
+/* switching Simple <-> Classic: come straight back to the same tab and design, without passing through Home */
+(function(){ let sw = null; try{ sw = sessionStorage.getItem("lpSwitching"); sessionStorage.removeItem("lpSwitching"); }catch(e){} if (!sw) return;
+  const ov = document.createElement("div"); ov.className = "lpswov"; ov.innerHTML = `<div><i></i>Opening your design…</div>`; document.body.appendChild(ov);
+  const keep = showHome; showHome = function(){}; 
+  setTimeout(() => { try{ window.__tbRestored = true; const t = tbAct(), recs = LS.get("recents", []); TB.list.forEach(x => { if (x.rid && !recs.some(r => r.id === x.rid)) x.rid = null; });
+    if (t) tbLoad(t); $("#startScr").hidden = true; tbSync(); tbRender(); }catch(e){ console.warn("switch restore", e); } finally { showHome = keep; ov.remove(); } }, 450); })();
 
 </script>
 </body>
