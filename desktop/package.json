@@ -2,17 +2,61 @@
   "name": "label-print",
   "productName": "Label Print",
   "version": "1.0.0",
-  "description": "Label Print — labels, price slips and A4 pages for the shop",
+  "description": "Label Print \u2014 labels, price slips and A4 pages for the shop",
   "author": "Lalitha Naturals",
   "main": "main.js",
-  "scripts": { "start": "electron .", "dist:win": "electron-builder --win --publish never", "dist:mac": "electron-builder --mac --universal --publish never" },
-  "devDependencies": { "electron": "33.2.1", "electron-builder": "25.1.8" },
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win --publish never",
+    "dist:mac": "electron-builder --mac --universal --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
   "build": {
     "appId": "com.lalithanaturals.labelprint",
     "productName": "Label Print",
-    "files": ["main.js", "app/**", "icon.png"],
-    "win": { "target": "nsis", "icon": "icon.png" },
-    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true, "shortcutName": "Label Print", "artifactName": "Label-Print-Setup.${ext}" },
-    "mac": { "target": "dmg", "icon": "icon.png", "category": "public.app-category.productivity", "identity": null, "artifactName": "Label-Print.${ext}" }
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**",
+      "icon.png"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Label Print",
+      "artifactName": "Label-Print-Setup.${ext}"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "icon.png",
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "artifactName": "Label-Print.${ext}"
+    },
+    "fileAssociations": [
+      {
+        "ext": "lpd",
+        "name": "Label Print design",
+        "description": "Label Print design",
+        "role": "Editor",
+        "icon": "icon.png"
+      },
+      {
+        "ext": "btw",
+        "name": "BarTender Document",
+        "description": "BarTender Document",
+        "role": "Viewer",
+        "icon": "icon.png"
+      }
+    ]
   }
 }

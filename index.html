@@ -23364,7 +23364,7 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-fx2=
 document.addEventListener("click", e => { if (e.target.closest("[data-fx2]")) $$(".moremenu").forEach(m => m.hidden = true); });
 
 /* ---------- version number ---------- */
-const APP_VERSION = "v49";
+const APP_VERSION = "v50";
 (function(){ const b = $("header.top .brand small") || $(".brand small"); if (b && !b.querySelector(".appver")) b.insertAdjacentHTML("beforeend", ` <span class="appver">· ${APP_VERSION}</span>`); })();
 const _homeHTMLv = homeHTML; homeHTML = function(){ return _homeHTMLv.apply(this, arguments).replace("<small>" + esc(shopInfo().name) + "</small>", `<small>${esc(shopInfo().name)} · ${APP_VERSION}</small>`); };
 
@@ -24225,7 +24225,7 @@ const tbIcon = k => ({label:"🏷️", thermal:"🧾", a4:"📄"})[k] || "📄";
 function tbRender(){ let bar = $("#lpTabs"); if (!bar) return; const sv = $("#lpSaved")?.outerHTML || `<span id="lpSaved" class="lpsaved"></span>`;
   bar.innerHTML = `<div class="lptl" role="tablist">${TB.list.map(t => { const c = S.settings[t.size]; const nm = (t.tid === TB.active ? curName() : t.name) || (t.kind === "label" ? "Untitled label" : "Untitled slip");
     return `<div class="lpt${t.tid === TB.active ? " on" : ""}" role="tab" aria-selected="${t.tid === TB.active}" data-tid="${t.tid}" title="${esc(nm)} · ${esc(c ? (c.label || "") : "")}"><span>${tbIcon(t.kind)}</span><b>${esc(nm)}</b><em>${esc(c ? c.label || (c.w + "×" + c.h) : "")}</em><button class="lptx" data-tx="${t.tid}" aria-label="Close tab">✕</button></div>`; }).join("")}
-    <div class="lpplus"><button class="lptn" data-tn="" title="New tab (same kind)">＋</button><button class="lptn lptdd" data-tdd="1" title="New tab of another kind" aria-label="New tab menu">▾</button></div></div>${sv}<button class="lptn lpshare" data-tshare="1" title="Share this design as a link">🔗 Share</button>`; }
+    </div><div class="lpplus"><button class="lptn" data-tn="" title="New tab (same kind)">＋</button><button class="lptn lptdd" data-tdd="1" title="New tab of another kind" aria-label="New tab menu">▾</button></div>${sv}<button class="lptn lpshare" data-tshare="1" title="Share this design as a link">🔗 Share</button>`; }
 function tbMount(){ if ($("#lpTabs")) $("#lpTabs").remove(); const bar = document.createElement("div"); bar.id = "lpTabs"; bar.className = "lptabs";
   if (document.body.classList.contains("classic")) $("#btShell").appendChild(bar); else $("#app > header.top")?.appendChild(bar);
   bar.addEventListener("click", e => { const x = e.target.closest("[data-tx]"); if (x){ e.stopPropagation(); tbClose(x.dataset.tx); return; }
@@ -24250,7 +24250,7 @@ window.addEventListener("keydown", e => { if (!TB || document.querySelector(".bt
   else if (/^[1-9]$/.test(k) && TB.list[+k - 1]){ e.preventDefault(); tbGo(TB.list[+k - 1].tid); } } }, true);
 
 // picking Label / Thermal / A4 opens it in its own tab (or jumps to the open one) when the current tab has a design in it
-const _setWorkV44 = setWork; setWork = function(w){ if (TBQ || !TB || w === S.work) return _setWorkV44.apply(this, arguments);
+const _setWorkV44 = setWork; setWork = function(w){ if (!["label", "thermal", "a4"].includes(w)) return; if (TBQ || !TB || w === S.work) return _setWorkV44.apply(this, arguments);
   const cur = tbAct(), has = isFlow() ? (tblocks().length || fobjs().length) : els().length; if (!cur || !has) return _setWorkV44.apply(this, arguments);
   const other = TB.list.find(x => x.kind === w && x.tid !== cur.tid); if (other){ tbGo(other.tid); return; } tbNew(w); };
 
@@ -24387,7 +24387,7 @@ setTimeout(() => { try{ if (window.__tbRestored) return; if (!$("#askModal")?.hi
 header.top > .lptabs{flex-basis:100%;margin:2px -14px -8px;padding:0 10px;background:rgba(0,0,0,.12)}
 #btShell > .lptabs{background:#dfe3e8;border-top:1px solid var(--btline,#c9ced6);padding:3px 6px 0}
 .lptl{display:flex;align-items:flex-end;gap:2px;overflow-x:auto;min-width:0;flex:1;scrollbar-width:thin}
-.lpt{display:flex;align-items:center;gap:6px;max-width:230px;min-width:120px;height:30px;padding:0 6px 0 10px;border-radius:7px 7px 0 0;cursor:pointer;flex:none;font:500 12.5px var(--ui,system-ui,sans-serif);user-select:none}
+.lpt{display:flex;align-items:center;gap:6px;max-width:230px;min-width:110px;scroll-snap-align:start;height:30px;padding:0 6px 0 10px;border-radius:7px 7px 0 0;cursor:pointer;flex:none;font:500 12.5px var(--ui,system-ui,sans-serif);user-select:none}
 .lpt b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.lpt em{font-style:normal;opacity:.7;font-size:11px;white-space:nowrap}
 .lptx{border:0;background:transparent;width:20px;height:20px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;flex:none;color:inherit;opacity:.65}.lptx:hover{opacity:1;background:rgba(0,0,0,.12)}
 header.top .lpt{color:rgba(255,255,255,.85)}header.top .lpt:hover{background:rgba(255,255,255,.12)}header.top .lpt.on{background:var(--bg,#f4f4f7);color:var(--ink,#1b1b1f)}
@@ -24649,7 +24649,7 @@ body.lpnew #props{background:#fff}
 .nfill > span{font-size:12.5px;color:#6b5a33;line-height:1.5}.nfill > div{display:flex;flex-wrap:wrap;gap:6px}
 .nfill button{height:36px;padding:0 12px;border-radius:18px;border:1px solid #e9cf95;background:#fff;font:500 12.5px Poppins,system-ui,sans-serif;cursor:pointer;color:#1d1b22}.nfill button:hover{background:#fff3da}.nfill .nfe{border-color:#d9d5e1}
 body.lpnew #thermalView{background:#f6f5f8}
-@media (max-width:1100px){.nhcards{grid-template-columns:1fr 1fr}.nhrecent{grid-template-columns:repeat(3,minmax(0,1fr))}#nHead .nhsaved{display:none}}`; document.head.appendChild(st); })();
+@media (max-width:1100px){.nhhead{padding-right:186px;gap:10px}.nhsearch{flex:1 1 140px;min-width:0}.nhcards{grid-template-columns:1fr 1fr}.nhrecent{grid-template-columns:repeat(3,minmax(0,1fr))}#nHead .nhsaved{display:none}}`; document.head.appendChild(st); })();
 
 /* switching Simple <-> Classic: come straight back to the same tab and design, without passing through Home */
 (function(){ let sw = null; try{ sw = sessionStorage.getItem("lpSwitching"); sessionStorage.removeItem("lpSwitching"); }catch(e){} if (!sw) return;
@@ -24657,6 +24657,11 @@ body.lpnew #thermalView{background:#f6f5f8}
   const keep = showHome; showHome = function(){}; 
   setTimeout(() => { try{ window.__tbRestored = true; const t = tbAct(), recs = LS.get("recents", []); TB.list.forEach(x => { if (x.rid && !recs.some(r => r.id === x.rid)) x.rid = null; });
     if (t) tbLoad(t); $("#startScr").hidden = true; tbSync(); tbRender(); }catch(e){ console.warn("switch restore", e); } finally { showHome = keep; ov.remove(); } }, 450); })();
+
+(function(){ const st = document.createElement("style"); st.textContent = `
+.lptl{scroll-snap-type:x proximity}
+@media (max-width:1100px){#nHead{flex-wrap:wrap;align-items:center;padding-top:8px;row-gap:6px}#nHead .nhtabs{order:10;flex:1 1 100%;margin:0 -14px 0 -14px;padding:0 10px;border-top:1px solid #efedf3}#nHead > .nhlogo,#nHead > .nhicon,#nHead > .nhprint,#nHead > .nhsize{margin-bottom:0}#nHead .nhsize{flex:1;max-width:none}}
+@media (max-width:760px){header.top .sizes{max-width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}header.top .sizes button{flex:none}header.top .sizes::-webkit-scrollbar{display:none}.lpt{min-width:96px;max-width:150px}}`; document.head.appendChild(st); })();
 
 </script>
 <script>
@@ -24753,6 +24758,47 @@ button,.btn,.lpt,.nhcard,.nhrec,.naddb,.nhchips button,.npgrid4 button,.npseg bu
 .setmain .setgrp:not([hidden]){animation:lpFadeUp .22s ease both}
 .fobj.sel,.el.sel{transition:outline-color .15s ease}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}}`; document.head.appendChild(st); })();
+
+</script>
+<script>
+/* ================= v50: double-click a .lpd or BarTender .btw file to open it in Label Print, ready to edit =================
+   Works in the Windows / Mac apps and in the web app once it is installed from Chrome or Edge. A .lpd file you opened this way
+   is kept up to date: your changes are written back into the same file automatically. */
+const FL = {};                 // tab id -> {name, handle?, path?, last}
+let FL_BOOT = false; const FL_Q = [];
+setTimeout(() => { FL_BOOT = true; FL_Q.splice(0).forEach(f => flOpen(f.file, f.link)); }, 1300);
+async function flOpen(file, link){
+  if (!FL_BOOT){ FL_Q.push({file, link}); return; }
+  try{
+    const buf = new Uint8Array(await file.arrayBuffer()), isBtw = /\.btw$/i.test(file.name) || new TextDecoder("latin1").decode(buf.subarray(0, 40)).includes("Bar Tender");
+    tbSaveCur(); const t = {tid:uid(), kind:"label", size:S.size, rid:null, name:""}; const i = TB.list.findIndex(x => x.tid === TB.active); TB.list.splice(i + 1, 0, t); TB.active = t.tid;
+    $("#startScr").hidden = true; document.querySelectorAll(".modal:not([hidden])").forEach(m => { if (m.id !== "askModal") m.hidden = true; });
+    if (isBtw){ const bt = parseBtw(buf); askBtw(bt, file.name); const pick = $("#btEdit") || $("#btExact"); if (pick) pick.click(); else { $("#askModal").hidden = true; toast("Nothing could be read from this BarTender file"); } }
+    else { const p = JSON.parse(new TextDecoder().decode(buf)); if (!(p.app === "label-print" && p.kind && p.data)) throw new Error("not a design");
+      importPayload(p); if (link) FL[t.tid] = Object.assign({name:file.name, last:JSON.stringify(makePayload())}, link); }
+    S.undo = []; S.redo = []; TU = []; TR = []; tbSync(); tbRender(); try{ touchRecent(true); }catch(e){} tbSync();
+    toast(isBtw ? `Opened “${file.name}” · BarTender text is ready to edit` : `Opened “${file.name}” · changes save back to this file`);
+  }catch(e){ console.warn("open file", e); toast("This file can't be opened. Use a .lpd design file or a BarTender .btw file."); }
+}
+// web app installed from Chrome / Edge: files opened from the computer arrive here
+if ("launchQueue" in window){ try{ launchQueue.setConsumer(async params => { for (const h of (params.files || [])){ try{ const f = await h.getFile(); flOpen(f, /\.lpd$/i.test(f.name) ? {handle:h} : null); }catch(e){} } }); }catch(e){} }
+// Windows / Mac desktop app
+if (window.lpDesktop && lpDesktop.onOpen){ try{ lpDesktop.onOpen(d => { try{ const bin = atob(d.data), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  flOpen(new File([u], d.name), /\.lpd$/i.test(d.name) ? {path:d.path} : null); }catch(e){ console.warn(e); } }); lpDesktop.ready && lpDesktop.ready(); }catch(e){} }
+// keep the opened file up to date
+let flBusy = false;
+async function flWrite(link, json){ if (link.path && window.lpDesktop && lpDesktop.save){ await lpDesktop.save(link.path, json); return true; }
+  if (link.handle){ let p = "granted"; try{ p = await link.handle.queryPermission({mode:"readwrite"}); }catch(e){} if (p !== "granted"){ flAsk(link); return false; }
+    const w = await link.handle.createWritable(); await w.write(new Blob([json], {type:"application/json"})); await w.close(); return true; } return false; }
+function flAsk(link){ if ($("#flAsk") || link.asked) return; link.asked = true; const b = document.createElement("div"); b.id = "flAsk"; b.className = "updban";
+  b.innerHTML = `<span>Save your changes back into <b>${esc(link.name)}</b>?</span><button class="btn primary" id="flYes">Yes, keep it up to date</button><button class="btn" id="flNo">No</button>`; document.body.appendChild(b);
+  b.querySelector("#flYes").onclick = async () => { try{ const p = await link.handle.requestPermission({mode:"readwrite"}); if (p === "granted"){ link.asked = false; link.last = ""; toast("Changes will be saved into " + link.name); } }catch(e){} b.remove(); };
+  b.querySelector("#flNo").onclick = () => { link.off = true; b.remove(); }; }
+setInterval(async () => { if (flBusy || !TB) return; const link = FL[TB.active]; if (!link || link.off) return; let json; try{ json = JSON.stringify(makePayload()); }catch(e){ return; } if (json === link.last) return;
+  flBusy = true; try{ if (await flWrite(link, json)){ link.last = json; const s = $("#nSaved"); if (s) s.title = "Also saved in " + link.name; } }catch(e){ console.warn("write back", e); } finally { flBusy = false; } }, 2000);
+// Ctrl+S on a file you opened: save it now (otherwise the usual save)
+window.addEventListener("keydown", e => { if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== "s" || e.shiftKey) return; const link = TB && FL[TB.active]; if (!link) return;
+  e.preventDefault(); e.stopImmediatePropagation(); try{ tbSaveCur(); }catch(x){} flWrite(link, JSON.stringify(makePayload())).then(ok => ok && toast("Saved into " + link.name)); }, true);
 
 </script>
 </body>

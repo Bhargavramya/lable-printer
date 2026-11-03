@@ -1,5 +1,5 @@
 // Label Print – offline support. Change the version when you upload a new index.html.
-const CACHE = "label-print-v49";
+const CACHE = "label-print-v50";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
