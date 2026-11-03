@@ -1,0 +1,7 @@
+{
+  "appId": "com.lalithanaturals.labelprint",
+  "appName": "Label Print",
+  "webDir": "www",
+  "server": { "url": "https://bhargavramya.github.io/lable-printer/", "errorPath": "index.html", "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}

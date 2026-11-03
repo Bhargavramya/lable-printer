@@ -23364,7 +23364,7 @@ document.addEventListener("click", e => { const b = e.target.closest('[data-fx2=
 document.addEventListener("click", e => { if (e.target.closest("[data-fx2]")) $$(".moremenu").forEach(m => m.hidden = true); });
 
 /* ---------- version number ---------- */
-const APP_VERSION = "v44";
+const APP_VERSION = "v45";
 (function(){ const b = $("header.top .brand small") || $(".brand small"); if (b && !b.querySelector(".appver")) b.insertAdjacentHTML("beforeend", ` <span class="appver">· ${APP_VERSION}</span>`); })();
 const _homeHTMLv = homeHTML; homeHTML = function(){ return _homeHTMLv.apply(this, arguments).replace("<small>" + esc(shopInfo().name) + "</small>", `<small>${esc(shopInfo().name)} · ${APP_VERSION}</small>`); };
 
@@ -24225,11 +24225,12 @@ const tbIcon = k => ({label:"🏷️", thermal:"🧾", a4:"📄"})[k] || "📄";
 function tbRender(){ let bar = $("#lpTabs"); if (!bar) return; const sv = $("#lpSaved")?.outerHTML || `<span id="lpSaved" class="lpsaved"></span>`;
   bar.innerHTML = `<div class="lptl" role="tablist">${TB.list.map(t => { const c = S.settings[t.size]; const nm = (t.tid === TB.active ? curName() : t.name) || (t.kind === "label" ? "Untitled label" : "Untitled slip");
     return `<div class="lpt${t.tid === TB.active ? " on" : ""}" role="tab" aria-selected="${t.tid === TB.active}" data-tid="${t.tid}" title="${esc(nm)} · ${esc(c ? (c.label || "") : "")}"><span>${tbIcon(t.kind)}</span><b>${esc(nm)}</b><em>${esc(c ? c.label || (c.w + "×" + c.h) : "")}</em><button class="lptx" data-tx="${t.tid}" aria-label="Close tab">✕</button></div>`; }).join("")}
-    <div class="lpplus"><button class="lptn" data-tn="" title="New tab (same kind)">＋</button><button class="lptn lptdd" data-tdd="1" title="New tab of another kind" aria-label="New tab menu">▾</button></div></div>${sv}`; }
+    <div class="lpplus"><button class="lptn" data-tn="" title="New tab (same kind)">＋</button><button class="lptn lptdd" data-tdd="1" title="New tab of another kind" aria-label="New tab menu">▾</button></div></div>${sv}<button class="lptn lpshare" data-tshare="1" title="Share this design as a link">🔗 Share</button>`; }
 function tbMount(){ if ($("#lpTabs")) $("#lpTabs").remove(); const bar = document.createElement("div"); bar.id = "lpTabs"; bar.className = "lptabs";
   if (document.body.classList.contains("classic")) $("#btShell").appendChild(bar); else $("#app > header.top")?.appendChild(bar);
   bar.addEventListener("click", e => { const x = e.target.closest("[data-tx]"); if (x){ e.stopPropagation(); tbClose(x.dataset.tx); return; }
     const n = e.target.closest("[data-tn]"); if (n){ tbNew(); return; }
+    if (e.target.closest("[data-tshare]")){ tbSaveCur(); openShare(); return; }
     if (e.target.closest("[data-tdd]")){ const r = e.target.getBoundingClientRect(), d = document.createElement("div"); d.className = "btdrop lpdd"; d.style.left = Math.min(r.left, innerWidth - 240) + "px"; d.style.top = r.bottom + "px";
       d.innerHTML = [["label", "🏷️ New sticker label"], ["thermal", "🧾 New thermal slip"], ["a4", "📄 New A4 page"]].map(([k, n2]) => `<button class="btmi" data-tk="${k}"><span>${n2}</span></button>`).join("") + `<hr><button class="btmi" data-tk="home"><span>📂 Open a saved project…</span></button><button class="btmi" data-tk="file"><span>📁 Open a project file…</span></button>`;
       document.body.appendChild(d); const off = ev => { if (!ev.target.closest(".lpdd")){ d.remove(); document.removeEventListener("pointerdown", off, true); } }; document.addEventListener("pointerdown", off, true);
@@ -24295,7 +24296,7 @@ setTimeout(() => { if (S.prefs.autoUpd !== false) updCheck(true); }, 4000);
 
 /* ---------- 5. Settings: one clean page per topic ---------- */
 const SET_CATS = [["general", "⚙️", "General", /Quick setup|When the app opens|New text|Expiry/], ["shop", "🏪", "Shop & logo", /Shop details|Default logo|Owner PIN|Brand/], ["products", "📦", "Products & Google Sheet", /product/i],
-  ["print", "🖨", "Printers & sizes", /Printer|Printing|Label sizes|Thermal paper|alignment/i], ["save", "💾", "Saving & backup", /Saving|Sharing|Backup/i], ["app", "🔄", "App & updates", /App &|Window/], ["more", "…", "More", /./]];
+  ["print", "🖨", "Printers & sizes", /Printer|Printing|Label sizes|Thermal paper|alignment/i], ["save", "💾", "Saving & backup", /Saving|Sharing|Backup/i], ["app", "🔄", "App & updates", /App &|Window/], ["get", "📲", "Get the app & share", /Get Label Print|Share designs/], ["more", "…", "More", /./]];
 let SET_TAB = "general";
 const _renderSettingsV44 = renderSettings; renderSettings = function(){ _renderSettingsV44.apply(this, arguments); try{ setOrganise(); }catch(e){ console.warn("settings", e); } };
 function setOrganise(){
@@ -24313,6 +24314,7 @@ function setOrganise(){
       <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn primary" data-upd="check">Check for updates</button></div>
       <label class="check" style="margin-top:8px"><input type="checkbox" id="updAuto" ${P.autoUpd !== false ? "checked" : ""}> Tell me when a new version is available</label></div>
     <div class="setcard" id="setStyleCard"><b>Window style</b><span class="hint">Classic designer has BarTender-style menus and toolbars. Phones always use the simple style.</span></div></section>`);
+  B.insertAdjacentHTML("beforeend", getAppHTML());
   const style = B.querySelector("#btStyleSel"); if (style){ const card = B.querySelector("#setStyleCard"); const lab = style.closest("label"); card.appendChild(lab); lab.querySelector("span").textContent = ""; }
   const secs = [...B.querySelectorAll(":scope > section.setsec")], groups = {};
   secs.forEach(s => { const h = (s.querySelector("h3")?.textContent || "").trim(); const c = SET_CATS.find(([, , , re]) => re.test(h)); (groups[c[0]] = groups[c[0]] || []).push(s); });
@@ -24331,6 +24333,33 @@ function setOrganise(){
     if (k === "one"){ tbSaveCur(); return download(fileName(".lpd"), new Blob([JSON.stringify(makePayload())], {type:"application/json"})); } if (k === "every"){ tbSaveCur(); return downloadAllProjects(); } if (k === "open"){ $("#setModal").hidden = true; return openFilePicker(); } });
 }
 
+/* ---------- 5b. get the app (web link, Android, Windows, Mac) and share designs, each with a QR code ---------- */
+const APP_SITE_DEFAULT = "https://bhargavramya.github.io/lable-printer/";
+const appSite = () => { const b = appBase(); return /github\.io|^https:\/\/(?!localhost)/.test(b || "") ? b.replace(/index\.html$/, "") : (S.prefs.appUrl ? appBase().replace(/index\.html$/, "") : APP_SITE_DEFAULT); };
+const appRepo = () => (S.prefs.appRepo || "Bhargavramya/lable-printer").trim();
+const appDl = f => `https://github.com/${appRepo()}/releases/latest/download/${f}`;
+let BIP = null; window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); BIP = e; });
+const qrBox = u => { let s = ""; try{ s = qrSVG(u, "M", "#111111", "#ffffff", 2); }catch(e){} return `<div class="gaqr" title="Scan with your phone camera">${s || ""}</div>`; };
+function getAppHTML(){ const site = appSite(), apps = [["android", "Android phone or tablet", "Label-Print.apk", "Download .apk", "Open the file on your phone. If asked, allow “Install unknown apps” for your browser or Files app."],
+    ["windows", "Windows computer", "Label-Print-Setup.exe", "Download .exe", "Run the installer. If Windows shows “Windows protected your PC”, click More info → Run anyway."],
+    ["mac", "Mac", "Label-Print.dmg", "Download for Mac", "Open the .dmg and drag Label Print to Applications. The first time, right-click the app → Open."]];
+  return `<section class="setsec"><h3>Get Label Print on every device</h3>
+    <div class="setcard gacard"><div class="gatxt"><b>🌐 Web app (any phone or computer)</b><span class="hint">Open this link, or scan the code with a phone camera. Then use “Install” or “Add to Home screen” to keep it like an app.</span>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><input class="fin" readonly value="${esc(site)}" style="flex:1;min-width:200px" onclick="this.select()"><button class="btn" data-ga="copy" data-u="${esc(site)}">Copy link</button><button class="btn" data-ga="open" data-u="${esc(site)}">Open</button>${BIP ? `<button class="btn primary" data-ga="install">Install on this device</button>` : ""}</div></div>${qrBox(site)}</div>
+    ${apps.map(([k, n, f, btn, help]) => `<div class="setcard gacard"><div class="gatxt"><b>${{android:"🤖", windows:"🪟", mac:"🍎"}[k]} ${n}</b><span class="hint">${help}</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><a class="btn primary" href="${esc(appDl(f))}" target="_blank" rel="noopener">${btn}</a><button class="btn" data-ga="copy" data-u="${esc(appDl(f))}">Copy download link</button></div></div>${qrBox(appDl(f))}</div>`).join("")}
+    <details class="gamore"><summary>Where the app files come from</summary><p class="hint">GitHub builds the Android, Windows and Mac apps every time you upload a new index.html, and puts them on the repo's Releases page. Installed apps open the latest version and get updates from Settings → App &amp; updates.</p><label class="f"><span>GitHub repository</span><input class="fin" id="gaRepo" value="${esc(appRepo())}"></label></details></section>
+  <section class="setsec"><h3>Share designs</h3>
+    <div class="setcard"><b>🔗 Share this design as a link</b><span class="hint">Anyone who opens the link gets a copy of the design in their Label Print, ready to edit or print. Works on WhatsApp too, and shows a QR code to scan.</span><div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn primary" data-ga="share">Share this design…</button></div></div></section>`; }
+document.addEventListener("click", async e => { const b = e.target.closest("[data-ga]"); if (!b) return; const k = b.dataset.ga;
+  if (k === "copy"){ try{ await navigator.clipboard.writeText(b.dataset.u); toast("Link copied"); }catch(x){ prompt("Copy this link", b.dataset.u); } }
+  if (k === "open") window.open(b.dataset.u, "_blank", "noopener");
+  if (k === "install" && BIP){ BIP.prompt(); try{ await BIP.userChoice; }catch(x){} BIP = null; renderSettings(); }
+  if (k === "share"){ $("#setModal").hidden = true; tbSaveCur(); openShare(); } });
+document.addEventListener("change", e => { if (e.target.id === "gaRepo"){ S.prefs.appRepo = e.target.value.trim(); save(); renderSettings(); } });
+// share button on the tab bar and the BarTender main toolbar
+if (typeof BT_BARS !== "undefined"){ try{ BT_BARS[0][1].splice(5, 0, ["share", "Share this design as a link", "share"]); BTI.share = BI('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>'); const tb = $("#btTb .btbar"); if (tb && !tb.querySelector('[data-a="share"]')){ const ref = tb.querySelector('[data-a="pagesetup"]'); ref && ref.insertAdjacentHTML("beforebegin", `<button class="btb" data-a="share" title="Share this design as a link" aria-label="Share this design as a link">${BTI.share}</button>`); } }catch(e){} }
+if (typeof BTA !== "undefined"){ BTA.getapp = () => { SET_TAB = "get"; openSettings(); }; try{ BT_MENU[0][1].splice(BT_MENU[0][1].findIndex(x => x[1] === "share") + 1, 0, ["Get the app (Android, Windows, Mac)…", "getapp"]); BT_MENU[8][1].splice(1, 0, ["Get the app on other devices…", "getapp"]); }catch(e){} }
+
 /* ---------- 6. start ---------- */
 (function(){ try{ tbInit(); tbMount(); }catch(e){ console.error("tabs", e); } })();
 // the app clears the screen and shows Home when it opens; if tabs were open last time, bring them back instead (like a browser)
@@ -24348,6 +24377,9 @@ header.top > .lptabs{flex-basis:100%;margin:2px -14px -8px;padding:0 10px;backgr
 header.top .lpt{color:rgba(255,255,255,.85)}header.top .lpt:hover{background:rgba(255,255,255,.12)}header.top .lpt.on{background:var(--bg,#f4f4f7);color:var(--ink,#1b1b1f)}
 #btShell .lpt{background:#eceff2;border:1px solid #c3c9d1;border-bottom:0;color:#1b1f24;font-family:"Segoe UI",system-ui,sans-serif;height:27px;border-radius:4px 4px 0 0}#btShell .lpt.on{background:#fff;box-shadow:inset 0 2px #1f6fb2}
 .lpplus{display:flex;flex:none;margin-bottom:3px}.lptn{border:0;background:transparent;height:24px;min-width:26px;border-radius:5px;cursor:pointer;font-size:15px;color:inherit}header.top .lptn{color:#fff}.lptn:hover{background:rgba(0,0,0,.12)}.lptdd{font-size:11px;min-width:18px}
+.lpshare{font-size:12.5px!important;font-weight:600;padding:0 10px;margin-bottom:4px;white-space:nowrap}
+.gacard{flex-direction:row!important;gap:16px!important;align-items:center}.gatxt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}.gaqr{flex:none;width:112px;height:112px;background:#fff;border:1px solid var(--line,#e3e3ea);border-radius:10px;padding:4px;box-sizing:border-box}.gaqr svg{width:100%;height:100%;display:block}a.btn{text-decoration:none;display:inline-flex;align-items:center}.gamore summary{cursor:pointer;font-weight:600;margin:8px 0}
+@media (max-width:760px){.gacard{flex-direction:column!important;align-items:stretch}.gaqr{align-self:center}}
 .lpsaved{flex:none;font:500 11.5px var(--ui,system-ui,sans-serif);opacity:.85;margin:0 4px 7px;white-space:nowrap}.lpsaved.busy{opacity:.6}
 header.top .lpsaved{color:#fff}#btShell .lpsaved{color:#2a6b2f;font-family:"Segoe UI",system-ui,sans-serif}
 body.simple .lptabs{display:none!important}
