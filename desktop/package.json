@@ -47,15 +47,13 @@
         "ext": "lpd",
         "name": "Label Print design",
         "description": "Label Print design",
-        "role": "Editor",
-        "icon": "icon.png"
+        "role": "Editor"
       },
       {
         "ext": "btw",
         "name": "BarTender Document",
         "description": "BarTender Document",
-        "role": "Viewer",
-        "icon": "icon.png"
+        "role": "Viewer"
       }
     ]
   }
